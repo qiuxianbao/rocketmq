@@ -23,10 +23,12 @@ import java.util.List;
 /**
  * The context of Trace
  */
+// TODO-QIU: 2024年4月20日, 0020
 public class TraceContext implements Comparable<TraceContext> {
 
     private TraceType traceType;
     private long timeStamp = System.currentTimeMillis();
+    // broker 所在的区域 ID，取自 BrokerConfig#regionId
     private String regionId = "";
     private String regionName = "";
     private String groupName = "";

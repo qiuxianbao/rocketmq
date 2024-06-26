@@ -20,6 +20,7 @@ import java.io.File;
 import org.apache.rocketmq.common.annotation.ImportantField;
 import org.apache.rocketmq.store.ConsumeQueue;
 
+// TODO-QIU: 2024年3月29日, 0029
 public class MessageStoreConfig {
     //The root directory in which the log data is kept
     @ImportantField
@@ -105,6 +106,8 @@ public class MessageStoreConfig {
     private int maxTransferBytesOnMessageInDisk = 1024 * 64;
     @ImportantField
     private int maxTransferCountOnMessageInDisk = 8;
+
+    // 访问消息的最大比率，决定是从master上还是从slave上消费
     @ImportantField
     private int accessMessageInMemoryMaxRatio = 40;
     @ImportantField
@@ -609,12 +612,18 @@ public class MessageStoreConfig {
     }
 
     /**
+     * 内存池
      * Enable transient commitLog store pool only if transientStorePoolEnable is true and the FlushDiskType is
      * ASYNC_FLUSH
      *
      * @return <tt>true</tt> or <tt>false</tt>
      */
     public boolean isTransientStorePoolEnable() {
+        // transientStorePool NIO内存映射机制，
+        // 提供了将文件系统中的文件映射到内存机制，实现对文件的操作转换对内存地址的操作，极大的提高了 IO 特性，
+        // 但这部分内存并不是常驻内存，可以被置换到交换内存(虚拟内存)，
+        // RocketMQ 为了提高消息发送的性能，引入了内存锁定机制，
+        // 即将最近需要操作的 commitlog 文件映射到内存，并提供内存锁定功能，确保这些文件始终存在内存中，该机制的控制参数就是 transientStorePoolEnable。
         return transientStorePoolEnable && FlushDiskType.ASYNC_FLUSH == getFlushDiskType()
             && BrokerRole.SLAVE != getBrokerRole();
     }

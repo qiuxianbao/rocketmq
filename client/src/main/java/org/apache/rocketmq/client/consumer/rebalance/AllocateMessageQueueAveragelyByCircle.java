@@ -26,6 +26,8 @@ import org.apache.rocketmq.common.message.MessageQueue;
 /**
  * Cycle average Hashing queue algorithm
  */
+// TODO-QIU: 2024年3月29日, 0029
+// 轮流分配
 public class AllocateMessageQueueAveragelyByCircle implements AllocateMessageQueueStrategy {
     private final InternalLogger log = ClientLogger.getLog();
 

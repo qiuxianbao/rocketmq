@@ -17,6 +17,8 @@
 
 package org.apache.rocketmq.remoting;
 
+// TODO-QIU: 2024年3月30日, 0030
+// 远程服务
 public interface RemotingService {
     void start();
 

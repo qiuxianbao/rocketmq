@@ -19,6 +19,8 @@ package org.apache.rocketmq.remoting;
 
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
+// TODO-QIU: 2024年3月30日, 0030
+// 远程调用钩子
 public interface RPCHook {
     void doBeforeRequest(final String remoteAddr, final RemotingCommand request);
 

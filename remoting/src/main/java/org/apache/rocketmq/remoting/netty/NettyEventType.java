@@ -16,6 +16,8 @@
  */
 package org.apache.rocketmq.remoting.netty;
 
+// TODO-QIU: 2024年3月30日, 0030
+// Netty事件类型
 public enum NettyEventType {
     CONNECT,
     CLOSE,

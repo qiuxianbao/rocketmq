@@ -13,6 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+# 空表示不设置白名单，该条规则默认返回 false
 globalWhiteRemoteAddresses:
 - 10.10.103.*
 - 192.168.0.*
@@ -20,14 +21,24 @@ globalWhiteRemoteAddresses:
 accounts:
 - accessKey: RocketMQ
   secretKey: 12345678
+  # 只能配置一条规则
   whiteRemoteAddress:
+  # 只有为true时，才有以下权限
+  # UPDATE_AND_CREATE_TOPIC
+  # UPDATE_BROKER_CONFIG
+  # DELETE_TOPIC_IN_BROKER
+  # UPDATE_AND_CREATE_SUBSCRIPTIONGROUP
+  # DELETE_SUBSCRIPTIONGROUP
   admin: false
   defaultTopicPerm: DENY
+  # 默认消费组权限
   defaultGroupPerm: SUB
+  # topic权限
   topicPerms:
   - topicA=DENY
   - topicB=PUB|SUB
   - topicC=SUB
+  # 消费组的权限
   groupPerms:
   # the group should convert to retry topic
   - groupA=DENY

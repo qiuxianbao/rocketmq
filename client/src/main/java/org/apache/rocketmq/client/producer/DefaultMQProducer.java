@@ -211,6 +211,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
      * @param producerGroup Producer group, see the name-sake field.
      * @param enableMsgTrace Switch flag instance for message trace.
      */
+    // 开启消费轨迹
     public DefaultMQProducer(final String producerGroup, boolean enableMsgTrace) {
         this(null, producerGroup, null, enableMsgTrace, null);
     }
@@ -321,6 +322,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
         Message msg) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
         Validators.checkMessage(msg, this);
         msg.setTopic(withNamespace(msg.getTopic()));
+        // 发送消息
         return this.defaultMQProducerImpl.send(msg);
     }
 

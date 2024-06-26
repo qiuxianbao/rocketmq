@@ -17,11 +17,13 @@
 package org.apache.rocketmq.common.message;
 
 import java.nio.ByteBuffer;
+import java.sql.SQLOutput;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.rocketmq.common.UtilAll;
 
+// TODO-QIU: 2024年4月20日, 0020
 public class MessageClientIDSetter {
     private static final String TOPIC_KEY_SPLITTER = "#";
     private static final int LEN;
@@ -39,9 +41,13 @@ public class MessageClientIDSetter {
         }
         LEN = ip.length + 2 + 4 + 4 + 2;
         ByteBuffer tempBuffer = ByteBuffer.allocate(ip.length + 2 + 4);
+        // 客户端ip
         tempBuffer.put(ip);
+        // 进程 ID
         tempBuffer.putShort((short) UtilAll.getPid());
+        // 加载 MessageClientIDSetter 的类加载器的 hashcode
         tempBuffer.putInt(MessageClientIDSetter.class.getClassLoader().hashCode());
+        // FA55E57654B418B4AAC2
         FIX_STRING = UtilAll.bytes2string(tempBuffer.array());
         setStartTime(System.currentTimeMillis());
         COUNTER = new AtomicInteger(0);
@@ -111,9 +117,12 @@ public class MessageClientIDSetter {
         return value & 0x0000FFFF;
     }
 
+    // 生成全局唯一id
     public static String createUniqID() {
         StringBuilder sb = new StringBuilder(LEN * 2);
+        // 固定前缀
         sb.append(FIX_STRING);
+        // 当前时间与系统启动时间的差值，以及自增序号
         sb.append(UtilAll.bytes2string(createUniqIDBuffer()));
         return sb.toString();
     }
@@ -146,5 +155,10 @@ public class MessageClientIDSetter {
         byte[] fakeIP = new byte[4];
         bb.get(fakeIP);
         return fakeIP;
+    }
+
+    public static void main(String[] args) {
+        // FA586BA24F1818B4AAC2651BF4DB0000
+        System.out.println(createUniqID());
     }
 }

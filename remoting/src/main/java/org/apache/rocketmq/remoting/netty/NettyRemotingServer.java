@@ -63,11 +63,15 @@ import org.apache.rocketmq.remoting.exception.RemotingTimeoutException;
 import org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
+// TODO-QIU: 2024年3月30日, 0030
+// Netty服务端
 public class NettyRemotingServer extends NettyRemotingAbstract implements RemotingServer {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
+    // 服务端
     private final ServerBootstrap serverBootstrap;
     private final EventLoopGroup eventLoopGroupSelector;
     private final EventLoopGroup eventLoopGroupBoss;
+    // Netty配置
     private final NettyServerConfig nettyServerConfig;
 
     private final ExecutorService publicExecutor;
@@ -195,7 +199,9 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
 
         prepareSharableHandlers();
 
+        // server的配置
         ServerBootstrap childHandler =
+                // TODO-QIU: 2024年3月30日, 0030 parentGroup, childGroup作用
             this.serverBootstrap.group(this.eventLoopGroupBoss, this.eventLoopGroupSelector)
                 .channel(useEpoll() ? EpollServerSocketChannel.class : NioServerSocketChannel.class)
                 .option(ChannelOption.SO_BACKLOG, 1024)
@@ -213,8 +219,10 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
                             .addLast(defaultEventExecutorGroup,
                                 encoder,
                                 new NettyDecoder(),
+                                // TODO-QIU: 2024年3月30日, 0030 IdleStateHandler做什么用的
                                 new IdleStateHandler(0, 0, nettyServerConfig.getServerChannelMaxIdleTimeSeconds()),
                                 connectionManageHandler,
+                                // 处理handler
                                 serverHandler
                             );
                     }
@@ -294,6 +302,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
             executorThis = this.publicExecutor;
         }
 
+        // 绑定处理器和线程池
         Pair<NettyRequestProcessor, ExecutorService> pair = new Pair<NettyRequestProcessor, ExecutorService>(processor, executorThis);
         this.processorTable.put(requestCode, pair);
     }
@@ -349,6 +358,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
         serverHandler = new NettyServerHandler();
     }
 
+    // TLS加密
     @ChannelHandler.Sharable
     class HandshakeHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
@@ -412,6 +422,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
         }
     }
 
+    // 处理请求
     @ChannelHandler.Sharable
     class NettyServerHandler extends SimpleChannelInboundHandler<RemotingCommand> {
 
@@ -421,6 +432,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
         }
     }
 
+    // 连接管理
     @ChannelHandler.Sharable
     class NettyConnectManageHandler extends ChannelDuplexHandler {
         @Override
@@ -437,6 +449,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
             super.channelUnregistered(ctx);
         }
 
+        // 通道建立
         @Override
         public void channelActive(ChannelHandlerContext ctx) throws Exception {
             final String remoteAddress = RemotingHelper.parseChannelRemoteAddr(ctx.channel());
@@ -444,6 +457,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
             super.channelActive(ctx);
 
             if (NettyRemotingServer.this.channelEventListener != null) {
+                // 添加到阻塞队列中，由队列按照Netty事件类型统一执行
                 NettyRemotingServer.this.putNettyEvent(new NettyEvent(NettyEventType.CONNECT, remoteAddress, ctx.channel()));
             }
         }

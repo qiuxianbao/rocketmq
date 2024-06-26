@@ -41,6 +41,7 @@ import org.apache.rocketmq.srvutil.ServerUtil;
 import org.apache.rocketmq.srvutil.ShutdownHookThread;
 import org.slf4j.LoggerFactory;
 
+// TODO-QIU: 2024年3月30日, 0030 namesrv启动
 public class NamesrvStartup {
 
     private static InternalLogger log;
@@ -137,6 +138,7 @@ public class NamesrvStartup {
             throw new IllegalArgumentException("NamesrvController is null");
         }
 
+        // 初始化
         boolean initResult = controller.initialize();
         if (!initResult) {
             controller.shutdown();

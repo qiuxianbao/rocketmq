@@ -60,6 +60,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
  * <strong>Thread Safety:</strong> After initialization, the instance can be regarded as thread-safe.
  * </p>
  */
+// TODO-QIU: 2024年4月16日, 0016
 public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsumer {
 
     private final InternalLogger log = ClientLogger.getLog();
@@ -123,6 +124,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      * </li>
      * </ul>
      */
+    // 注释很重要
     private ConsumeFromWhere consumeFromWhere = ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET;
 
     /**
@@ -509,6 +511,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
         return consumeFromWhere;
     }
 
+    // 一个新的消费组订阅一个已存在的 Topic 主题时，消费组是从该 Topic 的哪条消息开始消费呢？
     public void setConsumeFromWhere(ConsumeFromWhere consumeFromWhere) {
         this.consumeFromWhere = consumeFromWhere;
     }
@@ -834,6 +837,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
         return consumeTimestamp;
     }
 
+    // 默认值为30min前
     public void setConsumeTimestamp(String consumeTimestamp) {
         this.consumeTimestamp = consumeTimestamp;
     }

@@ -16,6 +16,7 @@
  */
 package org.apache.rocketmq.common.message;
 
+// TODO-QIU: 2024年4月20日, 0020
 public class MessageClientExt extends MessageExt {
 
     public String getOffsetMsgId() {
@@ -28,6 +29,8 @@ public class MessageClientExt extends MessageExt {
 
     @Override
     public String getMsgId() {
+        // 如果消息的属性中存在其唯一 ID，则返回消息的全局唯一 ID，
+        // 否则返回消息的 offsetMsgId
         String uniqID = MessageClientIDSetter.getUniqID(this);
         if (uniqID == null) {
             return this.getOffsetMsgId();

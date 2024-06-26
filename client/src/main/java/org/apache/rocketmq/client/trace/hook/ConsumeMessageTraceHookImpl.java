@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.apache.rocketmq.common.protocol.NamespaceUtil;
 
+// TODO-QIU: 2024年4月20日, 0020
 public class ConsumeMessageTraceHookImpl implements ConsumeMessageHook {
 
     private TraceDispatcher localDispatcher;

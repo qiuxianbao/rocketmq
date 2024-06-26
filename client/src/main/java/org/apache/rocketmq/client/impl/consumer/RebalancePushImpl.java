@@ -32,6 +32,7 @@ import org.apache.rocketmq.common.protocol.heartbeat.ConsumeType;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.apache.rocketmq.common.protocol.heartbeat.SubscriptionData;
 
+// TODO-QIU: 2024年4月16日, 0016
 public class RebalancePushImpl extends RebalanceImpl {
     private final static long UNLOCK_DELAY_TIME_MILLS = Long.parseLong(System.getProperty("rocketmq.client.unlockDelayTimeMills", "20000"));
     private final DefaultMQPushConsumerImpl defaultMQPushConsumerImpl;
@@ -141,24 +142,32 @@ public class RebalancePushImpl extends RebalanceImpl {
     public long computePullFromWhere(MessageQueue mq) {
         long result = -1;
         final ConsumeFromWhere consumeFromWhere = this.defaultMQPushConsumerImpl.getDefaultMQPushConsumer().getConsumeFromWhere();
+        // offset 存储器，消费组消息偏移量存储实现器
         final OffsetStore offsetStore = this.defaultMQPushConsumerImpl.getOffsetStore();
         switch (consumeFromWhere) {
+            // 从队列的最大偏移量开始消费
             case CONSUME_FROM_LAST_OFFSET_AND_FROM_MIN_WHEN_BOOT_FIRST:
             case CONSUME_FROM_MIN_OFFSET:
             case CONSUME_FROM_MAX_OFFSET:
             case CONSUME_FROM_LAST_OFFSET: {
+                // 从消息消费进度文件中读取消费消费进度, 集群模式
                 long lastOffset = offsetStore.readOffset(mq, ReadOffsetType.READ_FROM_STORE);
+                // 什么时候返回 0
                 if (lastOffset >= 0) {
                     result = lastOffset;
                 }
                 // First start,no offset
                 else if (-1 == lastOffset) {
+                    // 重试队列
                     if (mq.getTopic().startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) {
                         result = 0L;
                     } else {
+                        // 普通主题
                         try {
+                            // 获取队列最大偏移量
                             result = this.mQClientFactory.getMQAdminImpl().maxOffset(mq);
                         } catch (MQClientException e) {
+                            // 如果从远程服务拉取最大偏移量拉取异常或其他情况
                             result = -1;
                         }
                     }

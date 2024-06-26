@@ -19,6 +19,7 @@ package org.apache.rocketmq.client.trace;
 import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.message.MessageType;
 
+// TODO-QIU: 2024年4月20日, 0020
 public class TraceBean {
     private static final String LOCAL_ADDRESS = UtilAll.ipToIPv4Str(UtilAll.getIP());
     private String topic = "";

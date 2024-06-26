@@ -41,6 +41,7 @@ import org.apache.rocketmq.store.config.FlushDiskType;
 import org.apache.rocketmq.store.util.LibC;
 import sun.nio.ch.DirectBuffer;
 
+// TODO-QIU: 2024年4月11日, 0011
 public class MappedFile extends ReferenceResource {
     public static final int OS_PAGE_SIZE = 1024 * 4;
     protected static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
@@ -48,6 +49,7 @@ public class MappedFile extends ReferenceResource {
     private static final AtomicLong TOTAL_MAPPED_VIRTUAL_MEMORY = new AtomicLong(0);
 
     private static final AtomicInteger TOTAL_MAPPED_FILES = new AtomicInteger(0);
+    // 写的位置
     protected final AtomicInteger wrotePosition = new AtomicInteger(0);
     protected final AtomicInteger committedPosition = new AtomicInteger(0);
     private final AtomicInteger flushedPosition = new AtomicInteger(0);
@@ -56,11 +58,14 @@ public class MappedFile extends ReferenceResource {
     /**
      * Message will put to here first, and then reput to FileChannel if writeBuffer is not null.
      */
+    // 写消息
     protected ByteBuffer writeBuffer = null;
     protected TransientStorePool transientStorePool = null;
     private String fileName;
     private long fileFromOffset;
     private File file;
+
+    // 查询消息
     private MappedByteBuffer mappedByteBuffer;
     private volatile long storeTimestamp = 0;
     private boolean firstCreateInQueue = false;
@@ -68,6 +73,7 @@ public class MappedFile extends ReferenceResource {
     public MappedFile() {
     }
 
+    // 构造方法，初始化
     public MappedFile(final String fileName, final int fileSize) throws IOException {
         init(fileName, fileSize);
     }
@@ -143,7 +149,9 @@ public class MappedFile extends ReferenceResource {
 
     public void init(final String fileName, final int fileSize,
         final TransientStorePool transientStorePool) throws IOException {
+        // 初始化 mappedByteBuffer
         init(fileName, fileSize);
+        // 初始化 writeBuffer
         this.writeBuffer = transientStorePool.borrowBuffer();
         this.transientStorePool = transientStorePool;
     }
@@ -151,14 +159,18 @@ public class MappedFile extends ReferenceResource {
     private void init(final String fileName, final int fileSize) throws IOException {
         this.fileName = fileName;
         this.fileSize = fileSize;
+        // 根据文件名初始化文件
         this.file = new File(fileName);
         this.fileFromOffset = Long.parseLong(this.file.getName());
         boolean ok = false;
 
+        // 创建文件夹
         ensureDirOK(this.file.getParent());
 
         try {
+            // 初始化
             this.fileChannel = new RandomAccessFile(this.file, "rw").getChannel();
+            // 即真正意义上的 PageCache
             this.mappedByteBuffer = this.fileChannel.map(MapMode.READ_WRITE, 0, fileSize);
             TOTAL_MAPPED_VIRTUAL_MEMORY.addAndGet(fileSize);
             TOTAL_MAPPED_FILES.incrementAndGet();
@@ -188,6 +200,7 @@ public class MappedFile extends ReferenceResource {
         return fileChannel;
     }
 
+    // 追加消息
     public AppendMessageResult appendMessage(final MessageExtBrokerInner msg, final AppendMessageCallback cb) {
         return appendMessagesInner(msg, cb);
     }
@@ -196,17 +209,22 @@ public class MappedFile extends ReferenceResource {
         return appendMessagesInner(messageExtBatch, cb);
     }
 
+    // 追加数据
     public AppendMessageResult appendMessagesInner(final MessageExt messageExt, final AppendMessageCallback cb) {
+        // VM -ea
         assert messageExt != null;
         assert cb != null;
 
         int currentPos = this.wrotePosition.get();
 
         if (currentPos < this.fileSize) {
+            // writeBuffer != null 说明开启了transientStorePoolEnable 机制
+            // 则消息首先写入 writerBuffer 中，如果其为空，则写入 mappedByteBuffer 中
             ByteBuffer byteBuffer = writeBuffer != null ? writeBuffer.slice() : this.mappedByteBuffer.slice();
             byteBuffer.position(currentPos);
             AppendMessageResult result;
             if (messageExt instanceof MessageExtBrokerInner) {
+                //
                 result = cb.doAppend(this.getFileFromOffset(), byteBuffer, this.fileSize - currentPos, (MessageExtBrokerInner) messageExt);
             } else if (messageExt instanceof MessageExtBatch) {
                 result = cb.doAppend(this.getFileFromOffset(), byteBuffer, this.fileSize - currentPos, (MessageExtBatch) messageExt);
@@ -398,6 +416,7 @@ public class MappedFile extends ReferenceResource {
         return null;
     }
 
+    // 读取消息
     public SelectMappedBufferResult selectMappedBuffer(int pos) {
         int readPosition = getReadPosition();
         if (pos < readPosition && pos >= 0) {

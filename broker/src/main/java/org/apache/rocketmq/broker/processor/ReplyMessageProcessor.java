@@ -266,6 +266,7 @@ public class ReplyMessageProcessor extends AbstractSendMessageProcessor implemen
                     "service not available now, maybe disk full, maybe your broker machine memory too small.");
                 break;
             case OS_PAGECACHE_BUSY:
+                // 流控
                 log.info("[PC_SYNCHRONIZED]broker busy, start flow control for a while");
                 break;
             case UNKNOWN_ERROR:

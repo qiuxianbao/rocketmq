@@ -16,6 +16,7 @@
  */
 package org.apache.rocketmq.client.producer;
 
+// TODO-QIU: 2024年4月20日, 0020
 public enum LocalTransactionState {
     COMMIT_MESSAGE,
     ROLLBACK_MESSAGE,

@@ -19,12 +19,15 @@ package org.apache.rocketmq.client.producer;
 import com.alibaba.fastjson.JSON;
 import org.apache.rocketmq.common.message.MessageQueue;
 
+// TODO-QIU: 2024年4月20日, 0020
 public class SendResult {
     private SendStatus sendStatus;
+    // 由客户端生成
     private String msgId;
     private MessageQueue messageQueue;
     private long queueOffset;
     private String transactionId;
+    // Broker 服务器的 IP 与端口号、消息的物理偏移量
     private String offsetMsgId;
     private String regionId;
     private boolean traceOn = true;

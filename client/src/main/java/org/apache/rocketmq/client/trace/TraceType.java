@@ -16,8 +16,10 @@
  */
 package org.apache.rocketmq.client.trace;
 
+// TODO-QIU: 2024年4月20日, 0020
 public enum TraceType {
     Pub,
+    // 消息拉取到客户端，执行业务定义的消费逻辑之前
     SubBefore,
     SubAfter,
 }

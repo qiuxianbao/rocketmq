@@ -27,6 +27,8 @@ import org.apache.rocketmq.common.stats.MomentStatsItemSet;
 import org.apache.rocketmq.common.stats.StatsItem;
 import org.apache.rocketmq.common.stats.StatsItemSet;
 
+// TODO-QIU: 2024年3月29日, 0029
+// 监控指标数据
 public class BrokerStatsManager {
 
     public static final String TOPIC_PUT_NUMS = "TOPIC_PUT_NUMS";
@@ -66,7 +68,10 @@ public class BrokerStatsManager {
         "BrokerStatsThread"));
     private final ScheduledExecutorService commercialExecutor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
         "CommercialStatsThread"));
+
+    // 监控指标数据
     private final HashMap<String, StatsItemSet> statsTable = new HashMap<String, StatsItemSet>();
+
     private final String clusterName;
     private final MomentStatsItemSet momentStatsItemSetFallSize = new MomentStatsItemSet(GROUP_GET_FALL_SIZE, scheduledExecutorService, log);
     private final MomentStatsItemSet momentStatsItemSetFallTime = new MomentStatsItemSet(GROUP_GET_FALL_TIME, scheduledExecutorService, log);
@@ -173,7 +178,9 @@ public class BrokerStatsManager {
         this.statsTable.get(SNDBCK_PUT_NUMS).addValue(statsKey, 1, 1);
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
     public double tpsGroupGetNums(final String group, final String topic) {
+        // 消息主题@消费组名
         final String statsKey = buildStatsKey(topic, group);
         return this.statsTable.get(GROUP_GET_NUMS).getStatsDataInMinute(statsKey).getTps();
     }

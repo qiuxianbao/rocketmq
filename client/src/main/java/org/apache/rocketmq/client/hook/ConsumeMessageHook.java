@@ -16,6 +16,7 @@
  */
 package org.apache.rocketmq.client.hook;
 
+// TODO-QIU: 2024年4月20日, 0020
 public interface ConsumeMessageHook {
     String hookName();
 

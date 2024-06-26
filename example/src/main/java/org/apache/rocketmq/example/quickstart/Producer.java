@@ -25,6 +25,7 @@ import org.apache.rocketmq.remoting.common.RemotingHelper;
 /**
  * This class demonstrates how to send messages to brokers using provided {@link DefaultMQProducer}.
  */
+// TODO-QIU: 2024年3月29日, 0029
 public class Producer {
     public static void main(String[] args) throws MQClientException, InterruptedException {
 
@@ -44,13 +45,14 @@ public class Producer {
          * }
          * </pre>
          */
+        producer.setNamesrvAddr("127.0.0.1:9876");
 
         /*
          * Launch the instance.
          */
         producer.start();
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 1; i++) {
             try {
 
                 /*
@@ -64,6 +66,23 @@ public class Producer {
                 /*
                  * Call send message to deliver message to one of brokers.
                  */
+                // 消息发送、消息消费、RocketMQ queryMsgById 命令以及 rocketmq-console 等使用场景中究竟是用的哪一个 ID？
+
+                // msgId含义
+                // 该 ID 是消息发送者在消息发送时会首先在客户端生成，全局唯一，
+                // 在RocketMQ 中该 ID 还有另外的一个叫法：uniqId，无不体现其全局唯一性
+
+                // offsetMsgId含义
+                // 消息偏移 ID，该 ID 记录了消息所在集群的物理地址，
+                // 主要包含所存储Broker 服务器的地址(IP 与端口号)以及所在 commitlog 文件的物理偏移量。
+
+//             SendResult [
+//                  sendStatus=SEND_OK,
+//                  msgId=FA291F9A52C018B4AAC264EBEB9B0000,
+//                  offsetMsgId=7F00000100002A9F0000000000000216,
+//                  messageQueue=MessageQueue [topic=TopicTest, brokerName=broker-a, queueId=0],
+//                  queueOffset=1
+//              ]
                 SendResult sendResult = producer.send(msg);
 
                 System.out.printf("%s%n", sendResult);

@@ -33,6 +33,7 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.protocol.RemotingSerializable;
 
+// TODO-QIU: 2024年3月29日, 0029
 public class ConsumerOffsetManager extends ConfigManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final String TOPIC_GROUP_SEPARATOR = "@";
@@ -82,6 +83,18 @@ public class ConsumerOffsetManager extends ConfigManager {
         return result;
     }
 
+    /**
+     * consumerOffset.json
+     *
+     * {
+     * 	"offsetTable":{
+     * 		"TopicTest@please_rename_unique_group_name_4":{0:249,1:251,2:250,3:249
+     *                },
+     * 		"%RETRY%please_rename_unique_group_name_4@please_rename_unique_group_name_4":{0:0
+     *        }* 	}
+     * }
+     *
+     */
     public Set<String> whichTopicByConsumer(final String group) {
         Set<String> topics = new HashSet<String>();
 

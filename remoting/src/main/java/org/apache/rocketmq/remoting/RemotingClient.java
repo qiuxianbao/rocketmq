@@ -25,24 +25,44 @@ import org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException;
 import org.apache.rocketmq.remoting.netty.NettyRequestProcessor;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
+// TODO-QIU: 2024年3月30日, 0030
+// 远程客户端
 public interface RemotingClient extends RemotingService {
 
+    /**
+     * 更新namesrv地址
+     * @param addrs
+     */
     void updateNameServerAddressList(final List<String> addrs);
 
+    /**
+     * 获取namesrv地址
+     * @return
+     */
     List<String> getNameServerAddressList();
 
+    /**
+     * 同步执行
+     */
     RemotingCommand invokeSync(final String addr, final RemotingCommand request,
         final long timeoutMillis) throws InterruptedException, RemotingConnectException,
         RemotingSendRequestException, RemotingTimeoutException;
 
+    /**
+     * 异步执行
+     */
     void invokeAsync(final String addr, final RemotingCommand request, final long timeoutMillis,
         final InvokeCallback invokeCallback) throws InterruptedException, RemotingConnectException,
         RemotingTooMuchRequestException, RemotingTimeoutException, RemotingSendRequestException;
 
+    // TODO-QIU: 2024年3月30日, 0030 Oneway是什么
     void invokeOneway(final String addr, final RemotingCommand request, final long timeoutMillis)
         throws InterruptedException, RemotingConnectException, RemotingTooMuchRequestException,
         RemotingTimeoutException, RemotingSendRequestException;
 
+    /**
+     * 注册处理器
+     */
     void registerProcessor(final int requestCode, final NettyRequestProcessor processor,
         final ExecutorService executor);
 

@@ -94,6 +94,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.apache.rocketmq.remoting.exception.RemotingTimeoutException;
 import org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException;
 
+// TODO-QIU: 2024年4月11日, 0011
 public class DefaultMQProducerImpl implements MQProducerInner {
     private final InternalLogger log = ClientLogger.getLog();
     private final Random random = new Random();
@@ -507,6 +508,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                     long costTime = System.currentTimeMillis() - beginStartTime;
                     if (timeout > costTime) {
                         try {
+                            // 发送消息
                             sendDefaultImpl(msg, CommunicationMode.ASYNC, sendCallback, timeout - costTime);
                         } catch (Exception e) {
                             sendCallback.onException(e);
@@ -562,8 +564,10 @@ public class DefaultMQProducerImpl implements MQProducerInner {
             int timesTotal = communicationMode == CommunicationMode.SYNC ? 1 + this.defaultMQProducer.getRetryTimesWhenSendFailed() : 1;
             int times = 0;
             String[] brokersSent = new String[timesTotal];
+            // 高可用，对于捕获到的指定异常，会进行重试机制，重试2次
             for (; times < timesTotal; times++) {
                 String lastBrokerName = null == mq ? null : mq.getBrokerName();
+                // 选择队列
                 MessageQueue mqSelected = this.selectOneMessageQueue(topicPublishInfo, lastBrokerName);
                 if (mqSelected != null) {
                     mq = mqSelected;
@@ -580,6 +584,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                             break;
                         }
 
+                        // 调用，得到发送结果
                         sendResult = this.sendKernelImpl(msg, mq, communicationMode, sendCallback, topicPublishInfo, timeout - costTime);
                         endTimestamp = System.currentTimeMillis();
                         this.updateFaultItem(mq.getBrokerName(), endTimestamp - beginTimestampPrev, false);
@@ -629,6 +634,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                                 continue;
                             default:
                                 if (sendResult != null) {
+                                    // broker异常，RemotingSysResponseCode.SYSTEM_BUSY，没有重试，可能是一个Bug
                                     return sendResult;
                                 }
 
@@ -723,6 +729,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
             try {
                 //for MessageBatch,ID has been set in the generating process
                 if (!(msg instanceof MessageBatch)) {
+                    // 设置唯一 MgsId
                     MessageClientIDSetter.setUniqID(msg);
                 }
 
@@ -781,6 +788,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                 requestHeader.setProducerGroup(this.defaultMQProducer.getProducerGroup());
                 requestHeader.setTopic(msg.getTopic());
                 requestHeader.setDefaultTopic(this.defaultMQProducer.getCreateTopicKey());
+                // 默认是4
                 requestHeader.setDefaultTopicQueueNums(this.defaultMQProducer.getDefaultTopicQueueNums());
                 requestHeader.setQueueId(mq.getQueueId());
                 requestHeader.setSysFlag(sysFlag);
@@ -878,10 +886,12 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                 }
                 throw e;
             } catch (MQBrokerException e) {
+                // Broker异常，BrokerFastFailure，RemotingSysResponseCode.SYSTEM_BUSY
                 if (this.hasSendMessageHook()) {
                     context.setException(e);
                     this.executeSendMessageHookAfter(context);
                 }
+                // 抛出
                 throw e;
             } catch (InterruptedException e) {
                 if (this.hasSendMessageHook()) {

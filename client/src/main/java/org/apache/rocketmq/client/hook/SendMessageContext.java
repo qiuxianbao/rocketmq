@@ -24,6 +24,7 @@ import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.message.MessageType;
 
+// TODO-QIU: 2024年4月11日, 0011
 public class SendMessageContext {
     private String producerGroup;
     private Message message;
@@ -31,7 +32,9 @@ public class SendMessageContext {
     private String brokerAddr;
     private String bornHost;
     private CommunicationMode communicationMode;
+    // 存储结果
     private SendResult sendResult;
+    // 存储异常
     private Exception exception;
     private Object mqTraceContext;
     private Map<String, String> props;

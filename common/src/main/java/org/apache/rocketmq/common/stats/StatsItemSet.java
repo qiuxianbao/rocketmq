@@ -34,13 +34,17 @@ public class StatsItemSet {
     private final ScheduledExecutorService scheduledExecutorService;
     private final InternalLogger log;
 
+    // TODO-QIU: 2024年3月29日, 0029
     public StatsItemSet(String statsName, ScheduledExecutorService scheduledExecutorService, InternalLogger log) {
         this.statsName = statsName;
         this.scheduledExecutorService = scheduledExecutorService;
         this.log = log;
+
+        // 初始化采集
         this.init();
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
     public void init() {
 
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
@@ -57,6 +61,7 @@ public class StatsItemSet {
             @Override
             public void run() {
                 try {
+                    // 按分钟采集
                     samplingInMinutes();
                 } catch (Throwable ignored) {
                 }
@@ -152,6 +157,8 @@ public class StatsItemSet {
         }
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
+    // 更改值
     public void addValue(final String statsKey, final int incValue, final int incTimes) {
         StatsItem statsItem = this.getAndCreateStatsItem(statsKey);
         statsItem.getValue().addAndGet(incValue);

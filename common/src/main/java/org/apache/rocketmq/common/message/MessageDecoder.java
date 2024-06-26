@@ -58,6 +58,14 @@ public class MessageDecoder {
 //        + 4 // 13 RECONSUMETIMES
 //        + 8; // 14 Prepared Transaction Offset
 
+    /**
+     * 即在 RocketMQ 中，只需要提供 offsetMsgId，可用不必知道该消息所属的 topic 信息即可查询该条消息的内容
+     *
+     * @param input 用来存放 offsetMsgId 的字节缓存区
+     * @param addr  当前 Broker 服务器的 IP 地址与端口号，即通过解析 offsetMsgId 从而得到消息服务器的地址信息。
+     * @param offset 消息的物理偏移量
+     * @return
+     */
     public static String createMessageId(final ByteBuffer input, final ByteBuffer addr, final long offset) {
         input.flip();
         int msgIDLength = addr.limit() == 8 ? 16 : 28;

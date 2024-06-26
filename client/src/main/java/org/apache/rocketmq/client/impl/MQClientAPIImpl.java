@@ -164,6 +164,7 @@ import org.apache.rocketmq.remoting.protocol.LanguageCode;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 import org.apache.rocketmq.remoting.protocol.RemotingSerializable;
 
+// TODO-QIU: 2024年4月11日, 0011
 public class MQClientAPIImpl {
 
     private final static InternalLogger log = ClientLogger.getLog();
@@ -418,6 +419,7 @@ public class MQClientAPIImpl {
 
     }
 
+    // 发送消息
     public SendResult sendMessage(
         final String addr,
         final String brokerName,
@@ -461,6 +463,7 @@ public class MQClientAPIImpl {
                 SendMessageRequestHeaderV2 requestHeaderV2 = SendMessageRequestHeaderV2.createSendMessageRequestHeaderV2(requestHeader);
                 request = RemotingCommand.createRequestCommand(msg instanceof MessageBatch ? RequestCode.SEND_BATCH_MESSAGE : RequestCode.SEND_MESSAGE_V2, requestHeaderV2);
             } else {
+                // 发送消息，设置netty的RequestCode
                 request = RemotingCommand.createRequestCommand(RequestCode.SEND_MESSAGE, requestHeader);
             }
         }
@@ -500,8 +503,10 @@ public class MQClientAPIImpl {
         final long timeoutMillis,
         final RemotingCommand request
     ) throws RemotingException, MQBrokerException, InterruptedException {
+        // 发送请求到 broker
         RemotingCommand response = this.remotingClient.invokeSync(addr, request, timeoutMillis);
         assert response != null;
+        // 处理结果
         return this.processSendResponse(brokerName, msg, response);
     }
 
@@ -679,6 +684,7 @@ public class MQClientAPIImpl {
 
                 MessageQueue messageQueue = new MessageQueue(topic, brokerName, responseHeader.getQueueId());
 
+                // msgId客户端生成
                 String uniqMsgId = MessageClientIDSetter.getUniqID(msg);
                 if (msg instanceof MessageBatch) {
                     StringBuilder sb = new StringBuilder();
@@ -687,6 +693,7 @@ public class MQClientAPIImpl {
                     }
                     uniqMsgId = sb.toString();
                 }
+                // 构建发送结果
                 SendResult sendResult = new SendResult(sendStatus,
                     uniqMsgId,
                     responseHeader.getMsgId(), messageQueue, responseHeader.getQueueOffset());
@@ -708,6 +715,7 @@ public class MQClientAPIImpl {
                 break;
         }
 
+        // BrokerFastFailure，RemotingSysResponseCode.SYSTEM_BUSY
         throw new MQBrokerException(response.getCode(), response.getRemark());
     }
 

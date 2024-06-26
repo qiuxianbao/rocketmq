@@ -57,6 +57,8 @@ import org.apache.rocketmq.store.PutMessageResult;
 import org.apache.rocketmq.store.config.StorePathConfigHelper;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
 
+// TODO-QIU: 2024年4月11日, 0011
+// broker接收到消息后进行处理
 public class SendMessageProcessor extends AbstractSendMessageProcessor implements NettyRequestProcessor {
 
     private List<ConsumeMessageHook> consumeMessageHookList;
@@ -65,11 +67,13 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
         super(brokerController);
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
     @Override
     public RemotingCommand processRequest(ChannelHandlerContext ctx,
                                           RemotingCommand request) throws RemotingCommandException {
         RemotingCommand response = null;
         try {
+            // 处理请求
             response = asyncProcessRequest(ctx, request).get();
         } catch (InterruptedException | ExecutionException e) {
             log.error("process SendMessage error, request : " + request.toString(), e);
@@ -89,6 +93,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             case RequestCode.CONSUMER_SEND_MSG_BACK:
                 return this.asyncConsumerSendMsgBack(ctx, request);
             default:
+                // 解析request
                 SendMessageRequestHeader requestHeader = parseRequestHeader(request);
                 if (requestHeader == null) {
                     return CompletableFuture.completedFuture(null);
@@ -98,6 +103,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
                 if (requestHeader.isBatch()) {
                     return this.asyncSendBatchMessage(ctx, request, mqtraceContext, requestHeader);
                 } else {
+                    // 发送
                     return this.asyncSendMessage(ctx, request, mqtraceContext, requestHeader);
                 }
         }
@@ -105,6 +111,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
 
     @Override
     public boolean rejectRequest() {
+        // 拒绝条件
         return this.brokerController.getMessageStore().isOSPageCacheBusy() ||
             this.brokerController.getMessageStore().isTransientStorePoolDeficient();
     }
@@ -246,9 +253,11 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
     }
 
 
+    // TODO-QIU: 2024年3月29日, 0029
     private CompletableFuture<RemotingCommand> asyncSendMessage(ChannelHandlerContext ctx, RemotingCommand request,
                                                                 SendMessageContext mqtraceContext,
                                                                 SendMessageRequestHeader requestHeader) {
+        // 发送前
         final RemotingCommand response = preSend(ctx, request, requestHeader);
         final SendMessageResponseHeader responseHeader = (SendMessageResponseHeader)response.readCustomHeader();
 
@@ -480,6 +489,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
                 break;
             case OS_PAGECACHE_BUSY:
                 response.setCode(ResponseCode.SYSTEM_ERROR);
+                // 流控
                 response.setRemark("[PC_SYNCHRONIZED]broker busy, start flow control for a while");
                 break;
             case UNKNOWN_ERROR:
@@ -642,6 +652,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
         return (this.random.nextInt() % 99999999) % writeQueueNums;
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
     private RemotingCommand preSend(ChannelHandlerContext ctx, RemotingCommand request,
                                     SendMessageRequestHeader requestHeader) {
         final RemotingCommand response = RemotingCommand.createResponseCommand(SendMessageResponseHeader.class);
@@ -662,6 +673,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
         }
 
         response.setCode(-1);
+        // 校验消息
         super.msgCheck(ctx, requestHeader, response);
         if (response.getCode() != -1) {
             return response;

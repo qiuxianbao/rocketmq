@@ -17,9 +17,12 @@
 
 package org.apache.rocketmq.common.message;
 
+// TODO-QIU: 2024年4月20日, 0020
 public enum MessageType {
     Normal_Msg,
+    // 预提交
     Trans_Msg_Half,
+    // 提交
     Trans_msg_Commit,
     Delay_Msg,
 }

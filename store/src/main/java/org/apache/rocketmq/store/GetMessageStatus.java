@@ -16,6 +16,8 @@
  */
 package org.apache.rocketmq.store;
 
+// TODO-QIU: 2024年3月29日, 0029
+// 获取消息的状态
 public enum GetMessageStatus {
 
     FOUND,

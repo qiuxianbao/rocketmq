@@ -26,6 +26,8 @@ import org.apache.rocketmq.common.message.MessageQueue;
 /**
  * Average Hashing queue algorithm
  */
+// TODO-QIU: 2024年3月29日, 0029
+// 平均分配
 public class AllocateMessageQueueAveragely implements AllocateMessageQueueStrategy {
     private final InternalLogger log = ClientLogger.getLog();
 

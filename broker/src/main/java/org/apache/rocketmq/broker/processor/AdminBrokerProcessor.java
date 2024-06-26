@@ -137,6 +137,8 @@ import org.apache.rocketmq.store.PutMessageResult;
 import org.apache.rocketmq.store.PutMessageStatus;
 import org.apache.rocketmq.store.SelectMappedBufferResult;
 
+// TODO-QIU: 2024年3月29日, 0029
+// broker的处理逻辑
 public class AdminBrokerProcessor extends AsyncNettyRequestProcessor implements NettyRequestProcessor {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private final BrokerController brokerController;
@@ -162,6 +164,7 @@ public class AdminBrokerProcessor extends AsyncNettyRequestProcessor implements 
             case RequestCode.SEARCH_OFFSET_BY_TIMESTAMP:
                 return this.searchOffsetByTimestamp(ctx, request);
             case RequestCode.GET_MAX_OFFSET:
+                // 获取最大的消费进度
                 return this.getMaxOffset(ctx, request);
             case RequestCode.GET_MIN_OFFSET:
                 return this.getMinOffset(ctx, request);
@@ -186,6 +189,7 @@ public class AdminBrokerProcessor extends AsyncNettyRequestProcessor implements 
             case RequestCode.GET_PRODUCER_CONNECTION_LIST:
                 return this.getProducerConnectionList(ctx, request);
             case RequestCode.GET_CONSUME_STATS:
+                // console dashboard采集数据
                 return this.getConsumeStats(ctx, request);
             case RequestCode.GET_ALL_CONSUMER_OFFSET:
                 return this.getAllConsumerOffset(ctx, request);
@@ -853,19 +857,23 @@ public class AdminBrokerProcessor extends AsyncNettyRequestProcessor implements 
 
         Set<String> topics = new HashSet<String>();
         if (UtilAll.isBlank(requestHeader.getTopic())) {
+            // 通过 consumerOffset.json 根据消费组group获取所有的Topic
             topics = this.brokerController.getConsumerOffsetManager().whichTopicByConsumer(requestHeader.getConsumerGroup());
         } else {
             topics.add(requestHeader.getTopic());
         }
 
+        // 消费 TPS 将是所有主题消费 TPS 的总和，其他的信息按主题、队列信息单独存放。
         for (String topic : topics) {
             TopicConfig topicConfig = this.brokerController.getTopicConfigManager().selectTopicConfig(topic);
+            // 元信息不存在
             if (null == topicConfig) {
                 log.warn("consumeStats, topic config not exist, {}", topic);
                 continue;
             }
 
             {
+                // 消费者的订阅信息不存在，不在线
                 SubscriptionData findSubscriptionData =
                     this.brokerController.getConsumerManager().findSubscriptionData(requestHeader.getConsumerGroup(), topic);
 
@@ -876,6 +884,7 @@ public class AdminBrokerProcessor extends AsyncNettyRequestProcessor implements 
                 }
             }
 
+            // 收集所有主题的所有读队列
             for (int i = 0; i < topicConfig.getReadQueueNums(); i++) {
                 MessageQueue mq = new MessageQueue();
                 mq.setTopic(topic);
@@ -895,11 +904,15 @@ public class AdminBrokerProcessor extends AsyncNettyRequestProcessor implements 
                 if (consumerOffset < 0)
                     consumerOffset = 0;
 
+                // 设置该队列的最新偏移量
                 offsetWrapper.setBrokerOffset(brokerOffset);
+                // 设置该消费组对该队列的消费进度
                 offsetWrapper.setConsumerOffset(consumerOffset);
 
                 long timeOffset = consumerOffset - 1;
                 if (timeOffset >= 0) {
+                    // 上一次消费的消息的存储时间
+                    // 取消费组对于队列的消息消费进度 -1 的消息，存储在 broker 的时间
                     long lastTimestamp = this.brokerController.getMessageStore().getMessageStoreTimeStamp(topic, i, timeOffset);
                     if (lastTimestamp > 0) {
                         offsetWrapper.setLastTimestamp(lastTimestamp);
@@ -909,8 +922,10 @@ public class AdminBrokerProcessor extends AsyncNettyRequestProcessor implements 
                 consumeStats.getOffsetTable().put(mq, offsetWrapper);
             }
 
+            // 从统计数据中获取该消费组针对该队列的消费 TPS，TPS统计数据的入口
             double consumeTps = this.brokerController.getBrokerStatsManager().tpsGroupGetNums(requestHeader.getConsumerGroup(), topic);
 
+            // 累积消费 TPS，作为总的TPS
             consumeTps += consumeStats.getConsumeTps();
             consumeStats.setConsumeTps(consumeTps);
         }

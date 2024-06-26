@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+// TODO-QIU: 2024年4月20日, 0020
 public class Message implements Serializable {
     private static final long serialVersionUID = 8445773977080406428L;
 

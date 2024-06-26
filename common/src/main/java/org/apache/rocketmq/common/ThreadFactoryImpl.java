@@ -20,6 +20,8 @@ package org.apache.rocketmq.common;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
+// TODO-QIU: 2024年3月30日, 0030
+// 自定义线程工厂，可以指定线程名前缀、线程号、守护进程
 public class ThreadFactoryImpl implements ThreadFactory {
     private final AtomicLong threadIndex = new AtomicLong(0);
     private final String threadNamePrefix;

@@ -62,6 +62,7 @@ import org.apache.rocketmq.store.index.QueryOffsetResult;
 import org.apache.rocketmq.store.schedule.ScheduleMessageService;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
 
+// TODO-QIU: 2024年4月12日, 0012
 public class DefaultMessageStore implements MessageStore {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
@@ -144,6 +145,7 @@ public class DefaultMessageStore implements MessageStore {
 
         this.transientStorePool = new TransientStorePool(messageStoreConfig);
 
+        // 内存池初始化
         if (messageStoreConfig.isTransientStorePoolEnable()) {
             this.transientStorePool.init();
         }
@@ -527,9 +529,12 @@ public class DefaultMessageStore implements MessageStore {
 
     @Override
     public boolean isOSPageCacheBusy() {
+        // 将消息写入 Commitlog 文件所持有锁的时间
+        // 精确说是将消息体追加到内存映射文件(DirectByteBuffer)或 pageCache(FileChannel#map), 该过程中开始持有锁的时间戳
         long begin = this.getCommitLog().getBeginTimeInLock();
+        // 一次消息追加过程中持有锁的总时长，即往内存映射文件或 pageCache 追加一条消息所耗时间
         long diff = this.systemClock.now() - begin;
-
+        //osPageCacheBusyTimeOutMills = 1000;
         return diff < 10000000
             && diff > this.messageStoreConfig.getOsPageCacheBusyTimeOutMills();
     }
@@ -547,6 +552,8 @@ public class DefaultMessageStore implements MessageStore {
         return commitLog;
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
+    // 获取消息
     public GetMessageResult getMessage(final String group, final String topic, final int queueId, final long offset,
         final int maxMsgNums,
         final MessageFilter messageFilter) {
@@ -679,9 +686,15 @@ public class DefaultMessageStore implements MessageStore {
 
                         nextBeginOffset = offset + (i / ConsumeQueue.CQ_STORE_UNIT_SIZE);
 
+                        // maxOffsetPy，当前最大的物理偏移量。返回的偏移量为已存入到操作系统的 PageCache 中的内容
+                        // maxPhyOffsetPulling，本次消息拉取最大物理偏移量
+                        // diff 为目前未处理的消息总大小
                         long diff = maxOffsetPy - maxPhyOffsetPulling;
+                        // 获取 RocketMQ 消息存储在 PageCache 中的总大小，如果当RocketMQ 容量超过该阔值，将会将被置换出内存，
+                        // 如果要访问不在 PageCache 中的消息，则需要从磁盘读取。
                         long memory = (long) (StoreUtil.TOTAL_PHYSICAL_MEMORY_SIZE
                             * (this.messageStoreConfig.getAccessMessageInMemoryMaxRatio() / 100.0));
+                        // 设置下次拉起是否从从拉取标记，触发下次从从服务器拉取的条件为
                         getResult.setSuggestPullingFromSlave(diff > memory);
                     } finally {
 

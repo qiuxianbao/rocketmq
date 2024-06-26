@@ -28,6 +28,8 @@ import org.apache.rocketmq.common.protocol.body.SubscriptionGroupWrapper;
 import org.apache.rocketmq.common.protocol.body.TopicConfigSerializeWrapper;
 import org.apache.rocketmq.store.config.StorePathConfigHelper;
 
+// TODO-QIU: 2024年3月29日, 0029
+// 主从同步
 public class SlaveSynchronize {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private final BrokerController brokerController;
@@ -45,10 +47,16 @@ public class SlaveSynchronize {
         this.masterAddr = masterAddr;
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
+    // 同步
     public void syncAll() {
+        // Topic路由信息
         this.syncTopicConfig();
+        // 消息消费进度
         this.syncConsumerOffset();
+        // 延迟队列处理进度
         this.syncDelayOffset();
+        // 消费组订阅信息
         this.syncSubscriptionGroupConfig();
     }
 

@@ -56,6 +56,7 @@ public class UtilAll {
 
     public static int getPid() {
         RuntimeMXBean runtime = ManagementFactory.getRuntimeMXBean();
+        // 21684@LAPTOP-ROP3B248
         String name = runtime.getName(); // format: "pid@hostname"
         try {
             return Integer.parseInt(name.substring(0, name.indexOf('@')));

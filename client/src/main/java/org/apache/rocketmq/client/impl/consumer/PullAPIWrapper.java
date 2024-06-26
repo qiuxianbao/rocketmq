@@ -67,10 +67,12 @@ public class PullAPIWrapper {
         this.unitMode = unitMode;
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
     public PullResult processPullResult(final MessageQueue mq, final PullResult pullResult,
         final SubscriptionData subscriptionData) {
         PullResultExt pullResultExt = (PullResultExt) pullResult;
 
+        // 处理消息时，会将服务端建议的brokerId更新到broker 拉取缓存表中
         this.updatePullFromWhichNode(mq, pullResultExt.getSuggestWhichBrokerId());
         if (PullStatus.FOUND == pullResult.getPullStatus()) {
             ByteBuffer byteBuffer = ByteBuffer.wrap(pullResultExt.getMessageBinary());

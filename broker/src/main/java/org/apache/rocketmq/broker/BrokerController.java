@@ -107,6 +107,7 @@ import org.apache.rocketmq.store.dledger.DLedgerCommitLog;
 import org.apache.rocketmq.store.stats.BrokerStats;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
 
+// TODO-QIU: 2024年3月29日, 0029
 public class BrokerController {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final InternalLogger LOG_PROTECTION = InternalLoggerFactory.getLogger(LoggerName.PROTECTION_LOGGER_NAME);
@@ -177,8 +178,10 @@ public class BrokerController {
         this.brokerConfig = brokerConfig;
         this.nettyServerConfig = nettyServerConfig;
         this.nettyClientConfig = nettyClientConfig;
+        // 消息存储的配置
         this.messageStoreConfig = messageStoreConfig;
         this.consumerOffsetManager = new ConsumerOffsetManager(this);
+        // 主题
         this.topicConfigManager = new TopicConfigManager(this);
         this.pullMessageProcessor = new PullMessageProcessor(this);
         this.pullRequestHoldService = new PullRequestHoldService(this);
@@ -231,7 +234,11 @@ public class BrokerController {
         return queryThreadPoolQueue;
     }
 
+    /**
+     * 初始化操作
+     */
     public boolean initialize() throws CloneNotSupportedException {
+        // 加载topic.json中的路由信息
         boolean result = this.topicConfigManager.load();
 
         result = result && this.consumerOffsetManager.load();
@@ -265,12 +272,13 @@ public class BrokerController {
             NettyServerConfig fastConfig = (NettyServerConfig) this.nettyServerConfig.clone();
             fastConfig.setListenPort(nettyServerConfig.getListenPort() - 2);
             this.fastRemotingServer = new NettyRemotingServer(fastConfig, this.clientHousekeepingService);
+            // 发送消息的线程池
             this.sendMessageExecutor = new BrokerFixedThreadPoolExecutor(
-                this.brokerConfig.getSendMessageThreadPoolNums(),
+                this.brokerConfig.getSendMessageThreadPoolNums(), // 1
                 this.brokerConfig.getSendMessageThreadPoolNums(),
                 1000 * 60,
                 TimeUnit.MILLISECONDS,
-                this.sendThreadPoolQueue,
+                this.sendThreadPoolQueue,   // 10000
                 new ThreadFactoryImpl("SendMessageThread_"));
 
             this.pullMessageExecutor = new BrokerFixedThreadPoolExecutor(
@@ -329,6 +337,7 @@ public class BrokerController {
                 Executors.newFixedThreadPool(this.brokerConfig.getConsumerManageThreadPoolNums(), new ThreadFactoryImpl(
                     "ConsumerManageThread_"));
 
+            // 注册处理器
             this.registerProcessor();
 
             final long initialDelay = UtilAll.computeNextMorningTimeMillis() - System.currentTimeMillis();
@@ -401,6 +410,7 @@ public class BrokerController {
             }, 1000 * 10, 1000 * 60, TimeUnit.MILLISECONDS);
 
             if (this.brokerConfig.getNamesrvAddr() != null) {
+                // 更新namesrv的地址
                 this.brokerOuterAPI.updateNameServerAddressList(this.brokerConfig.getNamesrvAddr());
                 log.info("Set user specified name server address: {}", this.brokerConfig.getNamesrvAddr());
             } else if (this.brokerConfig.isFetchNamesrvAddrByAddressServer()) {
@@ -547,6 +557,8 @@ public class BrokerController {
         /**
          * SendMessageProcessor
          */
+
+        // 发送消息处理器
         SendMessageProcessor sendProcessor = new SendMessageProcessor(this);
         sendProcessor.registerSendMessageHook(sendMessageHookList);
         sendProcessor.registerConsumeMessageHook(consumeMessageHookList);
@@ -601,6 +613,7 @@ public class BrokerController {
         /**
          * ConsumerManageProcessor
          */
+        // 消费管理处理器
         ConsumerManageProcessor consumerManageProcessor = new ConsumerManageProcessor(this);
         this.remotingServer.registerProcessor(RequestCode.GET_CONSUMER_LIST_BY_GROUP, consumerManageProcessor, this.consumerManageExecutor);
         this.remotingServer.registerProcessor(RequestCode.UPDATE_CONSUMER_OFFSET, consumerManageProcessor, this.consumerManageExecutor);
@@ -892,6 +905,10 @@ public class BrokerController {
             @Override
             public void run() {
                 try {
+                    // 启动后延迟10s，之后每间隔10s ~ 60s（默认30s）
+                    // 向集群中所有的 NameServer 发送心跳包，注册 Topic 路由信息
+
+                    // forceRegister = true
                     BrokerController.this.registerBrokerAll(true, false, brokerConfig.isForceRegister());
                 } catch (Throwable e) {
                     log.error("registerBrokerAll Exception", e);
@@ -899,6 +916,7 @@ public class BrokerController {
             }
         }, 1000 * 10, Math.max(10000, Math.min(brokerConfig.getRegisterNameServerPeriod(), 60000)), TimeUnit.MILLISECONDS);
 
+        // 监控指标
         if (this.brokerStatsManager != null) {
             this.brokerStatsManager.start();
         }
@@ -906,7 +924,6 @@ public class BrokerController {
         if (this.brokerFastFailure != null) {
             this.brokerFastFailure.start();
         }
-
 
     }
 
@@ -948,6 +965,7 @@ public class BrokerController {
             this.brokerConfig.getBrokerName(),
             this.brokerConfig.getBrokerId(),
             this.brokerConfig.getRegisterBrokerTimeoutMills())) {
+            // 注册
             doRegisterBrokerAll(checkOrderConfig, oneway, topicConfigWrapper);
         }
     }
@@ -956,10 +974,12 @@ public class BrokerController {
         TopicConfigSerializeWrapper topicConfigWrapper) {
         List<RegisterBrokerResult> registerBrokerResultList = this.brokerOuterAPI.registerBrokerAll(
             this.brokerConfig.getBrokerClusterName(),
+            // IP1
             this.getBrokerAddr(),
             this.brokerConfig.getBrokerName(),
             this.brokerConfig.getBrokerId(),
             this.getHAServerAddr(),
+            // topicConfigTable
             topicConfigWrapper,
             this.filterServerManager.buildNewFilterServerList(),
             oneway,
@@ -1131,6 +1151,8 @@ public class BrokerController {
         return accessValidatorMap;
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
+    // 定时任务，每 10s 同步一次从节点
     private void handleSlaveSynchronize(BrokerRole role) {
         if (role == BrokerRole.SLAVE) {
             if (null != slaveSyncFuture) {
@@ -1141,6 +1163,7 @@ public class BrokerController {
                 @Override
                 public void run() {
                     try {
+                        // 从节点同步
                         BrokerController.this.slaveSynchronize.syncAll();
                     }
                     catch (Throwable e) {

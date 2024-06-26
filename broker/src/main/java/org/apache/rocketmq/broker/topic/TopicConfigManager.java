@@ -40,13 +40,30 @@ import org.apache.rocketmq.common.sysflag.TopicSysFlag;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 
+// TODO-QIU: 2024年3月29日, 0029
 public class TopicConfigManager extends ConfigManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final long LOCK_TIMEOUT_MILLIS = 3000;
     private transient final Lock lockTopicConfigTable = new ReentrantLock();
 
-    private final ConcurrentMap<String, TopicConfig> topicConfigTable =
+    // 路由信息，包含topic名称、读写队列等
+    /**
+     * "topicConfigTable":{
+     * 		"TopicTest":{
+     * 			"order":false,
+     * 			"perm":6,
+     * 			"readQueueNums":4,
+     * 			"topicFilterType":"SINGLE_TAG",
+     * 			"topicName":"TopicTest",
+     * 			"topicSysFlag":0,
+     * 			"writeQueueNums":4
+     *      }
+     * }
+     */
+    private final ConcurrentMap<String, /*topic name*/ TopicConfig> topicConfigTable =
         new ConcurrentHashMap<String, TopicConfig>(1024);
+
+    // Topic
     private final DataVersion dataVersion = new DataVersion();
     private final Set<String> systemTopicList = new HashSet<String>();
     private transient BrokerController brokerController;
@@ -54,6 +71,7 @@ public class TopicConfigManager extends ConfigManager {
     public TopicConfigManager() {
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
     public TopicConfigManager(BrokerController brokerController) {
         this.brokerController = brokerController;
         {
@@ -67,10 +85,12 @@ public class TopicConfigManager extends ConfigManager {
         }
         {
             // MixAll.AUTO_CREATE_TOPIC_KEY_TOPIC
+            // 自动创建Topic
             if (this.brokerController.getBrokerConfig().isAutoCreateTopicEnable()) {
                 String topic = MixAll.AUTO_CREATE_TOPIC_KEY_TOPIC;
                 TopicConfig topicConfig = new TopicConfig(topic);
                 this.systemTopicList.add(topic);
+                // 默认是8个队列
                 topicConfig.setReadQueueNums(this.brokerController.getBrokerConfig()
                     .getDefaultTopicQueueNums());
                 topicConfig.setWriteQueueNums(this.brokerController.getBrokerConfig()

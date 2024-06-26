@@ -16,8 +16,11 @@
  */
 package org.apache.rocketmq.remoting.common;
 
+// TODO-QIU: 2024年4月11日, 0011
 public class Pair<T1, T2> {
+    // NettyRequestProcessor
     private T1 object1;
+    // ExecutorService
     private T2 object2;
 
     public Pair(T1 object1, T2 object2) {

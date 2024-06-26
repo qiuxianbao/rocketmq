@@ -27,6 +27,7 @@ import org.apache.rocketmq.client.trace.TraceDispatcher;
 import org.apache.rocketmq.client.trace.TraceType;
 import org.apache.rocketmq.common.protocol.NamespaceUtil;
 
+// TODO-QIU: 2024年4月20日, 0020
 public class SendMessageTraceHookImpl implements SendMessageHook {
 
     private TraceDispatcher localDispatcher;

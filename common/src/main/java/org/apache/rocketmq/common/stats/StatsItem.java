@@ -24,16 +24,22 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.logging.InternalLogger;
 
+// TODO-QIU: 2024年3月29日, 0029
 public class StatsItem {
 
+    // 总数量
     private final AtomicLong value = new AtomicLong(0);
 
+    // 总次数
     private final AtomicLong times = new AtomicLong(0);
 
+    //一分钟的快照信息，该 List 只会存储 6 个元素，每 10s 记录一次调用快照，超过 6 条，则移除第一条
     private final LinkedList<CallSnapshot> csListMinute = new LinkedList<CallSnapshot>();
 
+    // 一小时的快照信息，该 List 只会存储 6 个元素，每 10 分钟记录一次快照，超过 6 条，则移除第一条
     private final LinkedList<CallSnapshot> csListHour = new LinkedList<CallSnapshot>();
 
+    // 一天的快照新，该 List 只会存储 24 个元素，每 1 小时记录一次快照，超过 24 条，则移除第一条
     private final LinkedList<CallSnapshot> csListDay = new LinkedList<CallSnapshot>();
 
     private final String statsName;
@@ -49,6 +55,7 @@ public class StatsItem {
         this.log = log;
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
     private static StatsSnapshot computeStatsData(final LinkedList<CallSnapshot> csList) {
         StatsSnapshot statsSnapshot = new StatsSnapshot();
         synchronized (csList) {
@@ -58,11 +65,14 @@ public class StatsItem {
             if (!csList.isEmpty()) {
                 CallSnapshot first = csList.getFirst();
                 CallSnapshot last = csList.getLast();
+                // 新增的总数
                 sum = last.getValue() - first.getValue();
+                // 毫秒变成秒
                 tps = (sum * 1000.0d) / (last.getTimestamp() - first.getTimestamp());
 
                 long timesDiff = last.getTimes() - first.getTimes();
                 if (timesDiff > 0) {
+                    // 即平均一次操作新增的消息条数
                     avgpt = (sum * 1.0d) / timesDiff;
                 }
             }
@@ -87,6 +97,7 @@ public class StatsItem {
         return computeStatsData(this.csListDay);
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
     public void init() {
 
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
@@ -103,6 +114,7 @@ public class StatsItem {
             @Override
             public void run() {
                 try {
+                    // 将当前 StatsItem 中的 value 与 变更次数(time ) 存入封装成 CallSnapshot ，然后存储在快照列表中
                     samplingInMinutes();
                 } catch (Throwable ignored) {
                 }

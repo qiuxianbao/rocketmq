@@ -17,6 +17,7 @@
 
 package org.apache.rocketmq.client.consumer.listener;
 
+// TODO-QIU: 2024年4月20日, 0020
 public enum ConsumeReturnType {
     /**
      * consume return success

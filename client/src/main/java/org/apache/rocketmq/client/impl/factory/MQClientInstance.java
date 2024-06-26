@@ -85,6 +85,8 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.apache.rocketmq.remoting.netty.NettyClientConfig;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
+// TODO-QIU: 2024年3月29日, 0029
+// MQ的客户端
 public class MQClientInstance {
     private final static long LOCK_TIMEOUT_MILLIS = 3000;
     private final InternalLogger log = ClientLogger.getLog();
@@ -235,7 +237,7 @@ public class MQClientInstance {
                     }
                     // Start request-response channel
                     this.mQClientAPIImpl.start();
-                    // Start various schedule tasks
+                    // Start various schedule tasks，开启定时任务
                     this.startScheduledTask();
                     // Start pull service
                     this.pullMessageService.start();
@@ -256,6 +258,7 @@ public class MQClientInstance {
 
     private void startScheduledTask() {
         if (null == this.clientConfig.getNamesrvAddr()) {
+            // 每间隔120更新namesrv的地址
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
                 @Override
@@ -274,6 +277,7 @@ public class MQClientInstance {
             @Override
             public void run() {
                 try {
+                    // 每间隔30s，从namesrv去获取topic
                     MQClientInstance.this.updateTopicRouteInfoFromNameServer();
                 } catch (Exception e) {
                     log.error("ScheduledTask updateTopicRouteInfoFromNameServer exception", e);
@@ -529,6 +533,7 @@ public class MQClientInstance {
         return false;
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
     private void sendHeartbeatToAllBroker() {
         final HeartbeatData heartbeatData = this.prepareHeartbeatData();
         final boolean producerEmpty = heartbeatData.getProducerDataSet().isEmpty();
@@ -556,6 +561,7 @@ public class MQClientInstance {
                             }
 
                             try {
+                                // 发送心跳
                                 int version = this.mQClientAPIImpl.sendHearbeat(addr, heartbeatData, 3000);
                                 if (!this.brokerVersionTable.containsKey(brokerName)) {
                                     this.brokerVersionTable.put(brokerName, new HashMap<String, Integer>(4));
@@ -604,6 +610,8 @@ public class MQClientInstance {
         }
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
+    // 生产者
     public boolean updateTopicRouteInfoFromNameServer(final String topic, boolean isDefault,
         DefaultMQProducer defaultMQProducer) {
         try {
@@ -615,6 +623,9 @@ public class MQClientInstance {
                             1000 * 3);
                         if (topicRouteData != null) {
                             for (QueueData data : topicRouteData.getQueueDatas()) {
+                                // 消息发送者从 Nameserver 获取到默认的 Topic 的队列信息后，队列的个数会改变吗？
+                                // 答案是会的
+                                // 故自动创建的主题，其队列数量默认为 4
                                 int queueNums = Math.min(defaultMQProducer.getDefaultTopicQueueNums(), data.getReadQueueNums());
                                 data.setReadQueueNums(queueNums);
                                 data.setWriteQueueNums(queueNums);
@@ -625,6 +636,7 @@ public class MQClientInstance {
                     }
                     if (topicRouteData != null) {
                         TopicRouteData old = this.topicRouteTable.get(topic);
+                        // 路由是否发生变化
                         boolean changed = topicRouteDataIsChange(old, topicRouteData);
                         if (!changed) {
                             changed = this.isNeedUpdateTopicRouteInfo(topic);
@@ -995,6 +1007,7 @@ public class MQClientInstance {
         return this.consumerTable.get(group);
     }
 
+    // TODO-QIU: 2024年3月29日, 0029
     public FindBrokerResult findBrokerAddressInAdmin(final String brokerName) {
         String brokerAddr = null;
         boolean slave = false;
@@ -1007,6 +1020,7 @@ public class MQClientInstance {
                 brokerAddr = entry.getValue();
                 if (brokerAddr != null) {
                     found = true;
+                    // 优先主服务器
                     if (MixAll.MASTER_ID == id) {
                         slave = false;
                     } else {

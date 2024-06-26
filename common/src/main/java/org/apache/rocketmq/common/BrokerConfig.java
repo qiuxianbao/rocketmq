@@ -25,9 +25,11 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 
+// TODO-QIU: 2024年3月29日, 0029
 public class BrokerConfig {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
 
+    // 环境变量 Environment variables
     private String rocketmqHome = System.getProperty(MixAll.ROCKETMQ_HOME_PROPERTY, System.getenv(MixAll.ROCKETMQ_HOME_ENV));
     @ImportantField
     private String namesrvAddr = System.getProperty(MixAll.NAMESRV_ADDR_PROPERTY, System.getenv(MixAll.NAMESRV_ADDR_ENV));
@@ -48,6 +50,8 @@ public class BrokerConfig {
     private boolean clusterTopicEnable = true;
 
     private boolean brokerTopicEnable = true;
+
+    // 自动创建订阅组
     @ImportantField
     private boolean autoCreateSubscriptionGroup = true;
     private String messageStorePlugIn = "";
@@ -82,6 +86,7 @@ public class BrokerConfig {
     private boolean rejectTransactionMessage = false;
     @ImportantField
     private boolean fetchNamesrvAddrByAddressServer = false;
+    // 队列默认大小
     private int sendThreadPoolQueueCapacity = 10000;
     private int pullThreadPoolQueueCapacity = 100000;
     private int replyThreadPoolQueueCapacity = 10000;
@@ -111,6 +116,8 @@ public class BrokerConfig {
     private int maxDelayTime = 40;
 
     private String regionId = MixAll.DEFAULT_TRACE_REGION_ID;
+
+    // 注册Broker的超时时间是6s
     private int registerBrokerTimeoutMills = 6000;
 
     private boolean slaveReadEnable = false;
@@ -118,6 +125,7 @@ public class BrokerConfig {
     private boolean disableConsumeIfConsumerReadSlowly = false;
     private long consumerFallbehindThreshold = 1024L * 1024 * 1024 * 16;
 
+    // 快速失败
     private boolean brokerFastFailureEnable = true;
     private long waitTimeMillsInSendQueue = 200;
     private long waitTimeMillsInPullQueue = 5 * 1000;

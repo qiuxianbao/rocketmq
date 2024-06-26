@@ -47,6 +47,7 @@ import org.apache.rocketmq.store.schedule.ScheduleMessageService;
 /**
  * Store all metadata downtime for recovery, data protection reliability
  */
+// TODO-QIU: 2024年4月11日, 0011
 public class CommitLog {
     // Message's MAGIC CODE daa320a7
     public final static int MESSAGE_MAGIC_CODE = -626843481;
@@ -776,6 +777,7 @@ public class CommitLog {
 
     }
 
+    // 放入消息
     public PutMessageResult putMessage(final MessageExtBrokerInner msg) {
         // Set the storage time
         msg.setStoreTimestamp(System.currentTimeMillis());
@@ -880,6 +882,7 @@ public class CommitLog {
         }
 
         if (elapsedTimeInLock > 500) {
+            // 超过500ms，就需要注意了broker busy问题了
             log.warn("[NOTIFYME]putMessage in lock cost time(ms)={}, bodyLength={} AppendMessageResult={}", elapsedTimeInLock, msg.getBody().length, result);
         }
 
@@ -1524,7 +1527,8 @@ public class CommitLog {
             final MessageExtBrokerInner msgInner) {
             // STORETIMESTAMP + STOREHOSTADDRESS + OFFSET <br>
 
-            // PHY OFFSET
+            // PHY OFFSET，追加到内存后返回其物理偏移量
+            // SendResult#offsetMsgId
             long wroteOffset = fileFromOffset + byteBuffer.position();
 
             int sysflag = msgInner.getSysFlag();
@@ -1535,6 +1539,8 @@ public class CommitLog {
             ByteBuffer storeHostHolder = ByteBuffer.allocate(storeHostLength);
 
             this.resetByteBuffer(storeHostHolder, storeHostLength);
+            // 在 commitlog 文件中的文件，会再次生成一个 id，
+            // 代码中虽然也叫 msgId，其实这里就是我们常说的offsetMsgId，即记录了消息的物理偏移量
             String msgId;
             if ((sysflag & MessageSysFlag.STOREHOSTADDRESS_V6_FLAG) == 0) {
                 msgId = MessageDecoder.createMessageId(this.msgIdMemory, msgInner.getStoreHostBytes(storeHostHolder), wroteOffset);

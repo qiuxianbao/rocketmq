@@ -56,6 +56,7 @@ public class ConsumerManageProcessor extends AsyncNettyRequestProcessor implemen
             case RequestCode.UPDATE_CONSUMER_OFFSET:
                 return this.updateConsumerOffset(ctx, request);
             case RequestCode.QUERY_CONSUMER_OFFSET:
+                // 查询消费进度
                 return this.queryConsumerOffset(ctx, request);
             default:
                 break;
@@ -131,13 +132,22 @@ public class ConsumerManageProcessor extends AsyncNettyRequestProcessor implemen
                 requestHeader.getConsumerGroup(), requestHeader.getTopic(), requestHeader.getQueueId());
 
         if (offset >= 0) {
+            // 如果消息消费进度文件中存储该队列的消息进度，其返回的 offset 必然会大于等于 0
             responseHeader.setOffset(offset);
             response.setCode(ResponseCode.SUCCESS);
             response.setRemark(null);
         } else {
+            // 如果未从消息消费进度文件中查询到其进度，offset 为-1
+
+            // 首先获取该主题、消息队列当前在 Broker 服务器中的最小偏移量
             long minOffset =
                 this.brokerController.getMessageStore().getMinOffsetInQueue(requestHeader.getTopic(),
                     requestHeader.getQueueId());
+
+            // 如果小于等于 0(返回 0 则表示该队列的文件还未曾删除过)并且其最小偏移量对应的消息存储在内存中而不是存在磁盘中，则返回偏移量 0，
+            // 这就意味着 ConsumeFromWhere 中定义的三种枚举类型都不会生效，直接从 0 开始消费
+
+            // 如果偏移量小于等于 0，但其消息已经存储在磁盘中，此时返回未找到，最终 RebalancePushImpl#computePullFromWhere 中得到的偏移量为-1
             if (minOffset <= 0
                 && !this.brokerController.getMessageStore().checkInDiskByConsumeOffset(
                 requestHeader.getTopic(), requestHeader.getQueueId(), 0)) {

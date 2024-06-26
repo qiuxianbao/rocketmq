@@ -17,6 +17,8 @@
 
 package org.apache.rocketmq.common.protocol;
 
+// TODO-QIU: 2024年3月30日, 0030
+// Netty的指令码
 public class RequestCode {
 
     public static final int SEND_MESSAGE = 10;

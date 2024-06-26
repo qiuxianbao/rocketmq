@@ -19,6 +19,8 @@ package org.apache.rocketmq.test.delay;
 
 import org.apache.rocketmq.test.base.BaseConf;
 
+// TODO-QIU: 2024年3月29日, 0029
+// 延迟等级
 public class DelayConf extends BaseConf {
     protected static final int[] DELAY_LEVEL = {
         1, 5, 10, 30, 1 * 60, 5 * 60, 10 * 60,

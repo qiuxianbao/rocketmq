@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import org.apache.rocketmq.common.TopicFilterType;
 import org.apache.rocketmq.common.sysflag.MessageSysFlag;
 
+// TODO-QIU: 2024年4月20日, 0020
 public class MessageExt extends Message {
     private static final long serialVersionUID = 5720810158625748049L;
 
@@ -40,6 +41,7 @@ public class MessageExt extends Message {
 
     private long storeTimestamp;
     private SocketAddress storeHost;
+    // 该 msgId 存放的是 offsetMsgId
     private String msgId;
     private long commitLogOffset;
     private int bodyCRC;

@@ -52,6 +52,9 @@ public class BrokerStartup {
     public static Properties properties = null;
     public static CommandLine commandLine = null;
     public static String configFile = null;
+
+    // TODO-QIU: 2024年3月30日, 0030
+    // 多种类型日志
     public static InternalLogger log;
 
     public static void main(String[] args) {
@@ -87,6 +90,10 @@ public class BrokerStartup {
         }
     }
 
+    /**
+     * 创建一个BrokerController
+     * 回调用 BrokerController#initialize
+     */
     public static BrokerController createBrokerController(String[] args) {
         System.setProperty(RemotingCommand.REMOTING_VERSION_KEY, Integer.toString(MQVersion.CURRENT_VERSION));
 
@@ -107,6 +114,7 @@ public class BrokerStartup {
                 System.exit(-1);
             }
 
+            // Broker配置
             final BrokerConfig brokerConfig = new BrokerConfig();
             final NettyServerConfig nettyServerConfig = new NettyServerConfig();
             final NettyClientConfig nettyClientConfig = new NettyClientConfig();
@@ -114,6 +122,8 @@ public class BrokerStartup {
             nettyClientConfig.setUseTLS(Boolean.parseBoolean(System.getProperty(TLS_ENABLE,
                 String.valueOf(TlsSystemConfig.tlsMode == TlsMode.ENFORCING))));
             nettyServerConfig.setListenPort(10911);
+
+            // 消息存储配置
             final MessageStoreConfig messageStoreConfig = new MessageStoreConfig();
 
             if (BrokerRole.SLAVE == messageStoreConfig.getBrokerRole()) {
@@ -124,6 +134,7 @@ public class BrokerStartup {
             if (commandLine.hasOption('c')) {
                 String file = commandLine.getOptionValue('c');
                 if (file != null) {
+                    // broker.conf 配置文件
                     configFile = file;
                     InputStream in = new BufferedInputStream(new FileInputStream(file));
                     properties = new Properties();
@@ -147,6 +158,7 @@ public class BrokerStartup {
                 System.exit(-2);
             }
 
+            // namesrv地址
             String namesrvAddr = brokerConfig.getNamesrvAddr();
             if (null != namesrvAddr) {
                 try {
@@ -165,6 +177,7 @@ public class BrokerStartup {
             switch (messageStoreConfig.getBrokerRole()) {
                 case ASYNC_MASTER:
                 case SYNC_MASTER:
+                    // master的 brokerId 为0
                     brokerConfig.setBrokerId(MixAll.MASTER_ID);
                     break;
                 case SLAVE:
@@ -182,6 +195,7 @@ public class BrokerStartup {
                 brokerConfig.setBrokerId(-1);
             }
 
+            // ha的端口号
             messageStoreConfig.setHaListenPort(nettyServerConfig.getListenPort() + 1);
             LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
             JoranConfigurator configurator = new JoranConfigurator();
@@ -211,6 +225,7 @@ public class BrokerStartup {
             MixAll.printObjectProperties(log, nettyClientConfig);
             MixAll.printObjectProperties(log, messageStoreConfig);
 
+            // 创建 BrokerController-》TopicConfigManager
             final BrokerController controller = new BrokerController(
                 brokerConfig,
                 nettyServerConfig,
@@ -219,6 +234,7 @@ public class BrokerStartup {
             // remember all configs to prevent discard
             controller.getConfiguration().registerConfig(properties);
 
+            // 初始化 BrokerController
             boolean initResult = controller.initialize();
             if (!initResult) {
                 controller.shutdown();
