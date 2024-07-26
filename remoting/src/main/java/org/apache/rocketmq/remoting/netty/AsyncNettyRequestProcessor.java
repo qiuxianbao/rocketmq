@@ -20,12 +20,24 @@ package org.apache.rocketmq.remoting.netty;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
-// TODO-QIU: 2024年3月29日, 0029
+/**
+ * 异步处理
+ */
 public abstract class AsyncNettyRequestProcessor implements NettyRequestProcessor {
 
-    // 异步处理请求
+    /**
+     * 异步处理的抽象实现
+     * 比 NettyRequestProcessor#processRequest(ChannelHandlerContext, RemotingCommand) 多了一个回调
+     *
+     * @param ctx
+     * @param request
+     * @param responseCallback
+     * @throws Exception
+     */
     public void  asyncProcessRequest(ChannelHandlerContext ctx, RemotingCommand request, RemotingResponseCallback responseCallback) throws Exception {
+        // 同步调用
         RemotingCommand response = processRequest(ctx, request);
+        // 回调
         responseCallback.callback(response);
     }
 }

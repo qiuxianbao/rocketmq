@@ -20,11 +20,32 @@
  */
 package org.apache.rocketmq.common.protocol.route;
 
+/**
+ * 队列数据
+ */
 public class QueueData implements Comparable<QueueData> {
+
+    /**
+     * 所属borker
+     */
     private String brokerName;
+
+    /**
+     * 读队列数
+     */
     private int readQueueNums;
+
+    /**
+     * 写队列数
+     */
     private int writeQueueNums;
+
+    /**
+     * 权限
+     */
     private int perm;
+
+    // TODO-QIU: 2024年7月25日, 0025 同步标识
     private int topicSynFlag;
 
     public int getReadQueueNums() {
@@ -105,6 +126,7 @@ public class QueueData implements Comparable<QueueData> {
 
     @Override
     public int compareTo(QueueData o) {
+        // TODO-QIU: 2024年7月25日, 0025 比较的是Broker的名称
         return this.brokerName.compareTo(o.getBrokerName());
     }
 

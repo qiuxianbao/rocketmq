@@ -19,26 +19,47 @@ package org.apache.rocketmq.common.protocol;
 
 import org.apache.rocketmq.remoting.protocol.RemotingSysResponseCode;
 
+/**
+ * 返回码
+ */
 public class ResponseCode extends RemotingSysResponseCode {
 
+    /**
+     * 刷盘超时
+     */
     public static final int FLUSH_DISK_TIMEOUT = 10;
 
+    /**
+     * 从节点不可用
+     */
     public static final int SLAVE_NOT_AVAILABLE = 11;
 
+    /**
+     * 刷从节点超时
+     */
     public static final int FLUSH_SLAVE_TIMEOUT = 12;
 
     public static final int MESSAGE_ILLEGAL = 13;
 
+    /**
+     * 服务不可用
+     */
     public static final int SERVICE_NOT_AVAILABLE = 14;
 
     public static final int VERSION_NOT_SUPPORTED = 15;
 
     public static final int NO_PERMISSION = 16;
 
+    /**
+     * Topic不存在
+     */
     public static final int TOPIC_NOT_EXIST = 17;
     public static final int TOPIC_EXIST_ALREADY = 18;
     public static final int PULL_NOT_FOUND = 19;
 
+    /**
+     * 立即拉取重试
+     */
     public static final int PULL_RETRY_IMMEDIATELY = 20;
 
     public static final int PULL_OFFSET_MOVED = 21;

@@ -16,7 +16,11 @@
  */
 package org.apache.rocketmq.remoting.common;
 
-// TODO-QIU: 2024年4月11日, 0011
+/**
+ * 封装，绑定 处理器 和 线程池
+ * @param <T1>
+ * @param <T2>
+ */
 public class Pair<T1, T2> {
     // NettyRequestProcessor
     private T1 object1;

@@ -19,6 +19,9 @@ package org.apache.rocketmq.logging;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 抽象工厂
+ */
 public abstract class InternalLoggerFactory {
 
     public static final String LOGGER_SLF4J = "slf4j";
@@ -35,16 +38,27 @@ public abstract class InternalLoggerFactory {
         return getLogger(clazz.getName());
     }
 
+    /**
+     * 获取工厂
+     * 从工厂中得到new实例
+     * @param name
+     * @return
+     */
     public static InternalLogger getLogger(String name) {
         return getLoggerFactory().getLoggerInstance(name);
     }
 
+    /**
+     * 获取工厂
+     * @return
+     */
     private static InternalLoggerFactory getLoggerFactory() {
         InternalLoggerFactory internalLoggerFactory = null;
         if (loggerType != null) {
             internalLoggerFactory = loggerFactoryCache.get(loggerType);
         }
         if (internalLoggerFactory == null) {
+            // 默认sl4j
             internalLoggerFactory = loggerFactoryCache.get(DEFAULT_LOGGER);
         }
         if (internalLoggerFactory == null) {
@@ -60,8 +74,13 @@ public abstract class InternalLoggerFactory {
         loggerType = type;
     }
 
+    /**
+     * 类加载时，注册
+     * 创建2个实例工厂，维护到 loggerFactoryCache Map中
+     */
     static {
         try {
+            // 通过new构造方法调用注册
             new Slf4jLoggerFactory();
         } catch (Throwable e) {
             //ignore
@@ -73,7 +92,11 @@ public abstract class InternalLoggerFactory {
         }
     }
 
+    /**
+     * 注册工厂
+     */
     protected void doRegister() {
+        // 子类实现
         String loggerType = getLoggerType();
         if (loggerFactoryCache.get(loggerType) != null) {
             return;
@@ -83,7 +106,18 @@ public abstract class InternalLoggerFactory {
 
     protected abstract void shutdown();
 
+    /**
+     * 实例工厂创建实例
+     *
+     * @param name
+     * @return
+     */
     protected abstract InternalLogger getLoggerInstance(String name);
 
+    /**
+     * 实例工厂通过Type区分
+     *
+     * @return
+     */
     protected abstract String getLoggerType();
 }

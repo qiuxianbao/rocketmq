@@ -29,6 +29,11 @@ public abstract class ServiceThread implements Runnable {
     private static final long JOIN_TIME = 90 * 1000;
     protected final Thread thread;
     protected volatile boolean hasNotified = false;
+
+    /**
+     * 线程间通信，
+     * 使用volatile可见
+     */
     protected volatile boolean stopped = false;
 
     public ServiceThread() {

@@ -17,6 +17,10 @@
 
 package org.apache.rocketmq.logging;
 
+/**
+ * 抽象日志
+ * 工厂对象
+ */
 public interface InternalLogger {
 
     String getName();

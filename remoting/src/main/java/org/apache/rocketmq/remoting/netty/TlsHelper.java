@@ -73,6 +73,7 @@ public class TlsHelper {
         InputStream decryptPrivateKey(String privateKeyEncryptPath, boolean forClient) throws IOException;
     }
 
+    // RocketmqRemoting
     private static final InternalLogger LOGGER = InternalLoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
 
     private static DecryptionStrategy decryptionStrategy = new DecryptionStrategy() {
@@ -88,11 +89,21 @@ public class TlsHelper {
         TlsHelper.decryptionStrategy = decryptionStrategy;
     }
 
+    /**
+     * 构建TLS上下文
+     *
+     * @param forClient
+     * @return
+     * @throws IOException
+     * @throws CertificateException
+     */
     public static SslContext buildSslContext(boolean forClient) throws IOException, CertificateException {
+        // /etc/rocketmq/tls.properties
         File configFile = new File(TlsSystemConfig.tlsConfigFile);
         extractTlsConfigFromFile(configFile);
         logTheFinalUsedTlsConfig();
 
+        // SSL的2种方式
         SslProvider provider;
         if (OpenSsl.isAvailable()) {
             provider = SslProvider.OPENSSL;
@@ -103,6 +114,7 @@ public class TlsHelper {
         }
 
         if (forClient) {
+            // 客户端
             if (tlsTestModeEnable) {
                 return SslContextBuilder
                     .forClient()
@@ -128,9 +140,10 @@ public class TlsHelper {
                     .build();
             }
         } else {
-
+            // 服务端
             if (tlsTestModeEnable) {
                 SelfSignedCertificate selfSignedCertificate = new SelfSignedCertificate();
+                // 创建TLS
                 return SslContextBuilder
                     .forServer(selfSignedCertificate.certificate(), selfSignedCertificate.privateKey())
                     .sslProvider(SslProvider.JDK)
@@ -157,6 +170,11 @@ public class TlsHelper {
         }
     }
 
+    /**
+     * 读取文件的内容映射到配置上
+     *
+     * @param configFile
+     */
     private static void extractTlsConfigFromFile(final File configFile) {
         if (!(configFile.exists() && configFile.isFile() && configFile.canRead())) {
             LOGGER.info("Tls config file doesn't exist, skip it");

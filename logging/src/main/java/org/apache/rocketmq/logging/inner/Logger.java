@@ -22,6 +22,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 
+// TODO-QIU: 2024年7月9日, 0009
 public class Logger implements Appender.AppenderPipeline {
 
     private static final String FQCN = Logger.class.getName();

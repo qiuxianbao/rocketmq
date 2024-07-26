@@ -28,15 +28,21 @@ import java.util.Properties;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ *
+ */
 public class Configuration {
 
     private final InternalLogger log;
 
     private List<Object> configObjectList = new ArrayList<Object>(4);
+
+    // 存储相关
     private String storePath;
     private boolean storePathFromConfig = false;
     private Object storePathObject;
     private Field storePathField;
+
     private DataVersion dataVersion = new DataVersion();
     private ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     /**
@@ -70,6 +76,7 @@ public class Configuration {
      */
     public Configuration registerConfig(Object configObject) {
         try {
+            // Acquires the lock unless the current thread is interrupted.
             readWriteLock.writeLock().lockInterruptibly();
 
             try {

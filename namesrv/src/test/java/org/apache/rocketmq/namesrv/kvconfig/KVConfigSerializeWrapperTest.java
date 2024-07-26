@@ -23,6 +23,9 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/**
+ * K-V的单元测试
+ */
 public class KVConfigSerializeWrapperTest {
     private KVConfigSerializeWrapper kvConfigSerializeWrapper;
 
@@ -40,9 +43,11 @@ public class KVConfigSerializeWrapperTest {
         kvs.put("cid", "default-consumer-name");
         result.put(NamesrvUtil.NAMESPACE_ORDER_TOPIC_CONFIG, kvs);
         kvConfigSerializeWrapper.setConfigTable(result);
+        // 编码
         byte[] serializeByte = KVConfigSerializeWrapper.encode(kvConfigSerializeWrapper);
         assertThat(serializeByte).isNotNull();
 
+        // 解码
         KVConfigSerializeWrapper deserializeObject = KVConfigSerializeWrapper.decode(serializeByte, KVConfigSerializeWrapper.class);
         assertThat(deserializeObject.getConfigTable()).containsKey(NamesrvUtil.NAMESPACE_ORDER_TOPIC_CONFIG);
         assertThat(deserializeObject.getConfigTable().get(NamesrvUtil.NAMESPACE_ORDER_TOPIC_CONFIG).get("broker-name")).isEqualTo("default-broker");

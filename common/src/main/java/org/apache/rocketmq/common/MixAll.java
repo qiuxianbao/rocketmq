@@ -150,20 +150,31 @@ public class MixAll {
         return 0;
     }
 
+    /**
+     * 将字符串持久化成文件
+     *
+     * @param str
+     * @param fileName
+     * @throws IOException
+     */
     public static void string2File(final String str, final String fileName) throws IOException {
-
+        // 临时文件
         String tmpFile = fileName + ".tmp";
         string2FileNotSafe(str, tmpFile);
 
+        // 备份
         String bakFile = fileName + ".bak";
         String prevContent = file2String(fileName);
         if (prevContent != null) {
             string2FileNotSafe(prevContent, bakFile);
         }
 
+        // 写入过程中发生意外导致文件损坏或数据丢失
+        // 删除旧文件
         File file = new File(fileName);
         file.delete();
 
+        // 文件重命名
         file = new File(tmpFile);
         file.renameTo(new File(fileName));
     }
@@ -188,6 +199,13 @@ public class MixAll {
         }
     }
 
+    /**
+     * 根据文件地址读取文件内容
+     *
+     * @param fileName
+     * @return
+     * @throws IOException
+     */
     public static String file2String(final String fileName) throws IOException {
         File file = new File(fileName);
         return file2String(file);
@@ -239,14 +257,22 @@ public class MixAll {
         return null;
     }
 
+    /**
+     * 打印对象的属性-值
+     *
+     * @param logger
+     * @param object
+     */
     public static void printObjectProperties(final InternalLogger logger, final Object object) {
         printObjectProperties(logger, object, false);
     }
 
     public static void printObjectProperties(final InternalLogger logger, final Object object,
         final boolean onlyImportantField) {
+        // 获取对象所有属性
         Field[] fields = object.getClass().getDeclaredFields();
         for (Field field : fields) {
+            // 字段修饰符
             if (!Modifier.isStatic(field.getModifiers())) {
                 String name = field.getName();
                 if (!name.startsWith("this")) {

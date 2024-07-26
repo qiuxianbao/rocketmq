@@ -20,8 +20,17 @@ package org.apache.rocketmq.common;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
+// TODO-QIU: 2024年7月26日, 0026
 /**
  * Add reset feature for @see java.util.concurrent.CountDownLatch
+ *
+ * 和CountDownLatch不同的是它支持reset()，可以被反复使用
+ *
+ * 通常来说CyclicBarrier也能被反复使用，它们的应用场景区别在哪里呢？
+ *  1.CyclicBarrier 是用来等待事件完成后才继续
+ *  2.CountDownLatch 是用来等待其他线程执行到某一步
+ *
+ *  reference: <a href="https://juejin.cn/post/7163102677679734815">...</a>
  */
 public class CountDownLatch2 {
     private final Sync sync;
@@ -154,6 +163,8 @@ public class CountDownLatch2 {
         return super.toString() + "[Count = " + sync.getCount() + "]";
     }
 
+
+    // TODO-QIU: 2024年7月26日, 0026 自定义继承 AbstractQueuedSynchronizer
     /**
      * Synchronization control For CountDownLatch2.
      * Uses AQS state to represent count.

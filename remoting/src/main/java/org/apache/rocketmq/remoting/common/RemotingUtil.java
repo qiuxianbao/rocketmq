@@ -41,6 +41,7 @@ public class RemotingUtil {
     private static boolean isLinuxPlatform = false;
     private static boolean isWindowsPlatform = false;
 
+    // 静态加载，初始化操作系统平台
     static {
         if (OS_NAME != null && OS_NAME.toLowerCase().contains("linux")) {
             isLinuxPlatform = true;

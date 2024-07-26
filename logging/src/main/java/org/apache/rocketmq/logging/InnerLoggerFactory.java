@@ -22,6 +22,9 @@ import org.apache.rocketmq.logging.inner.Logger;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 实例工厂
+ */
 public class InnerLoggerFactory extends InternalLoggerFactory {
 
     public InnerLoggerFactory() {
@@ -43,6 +46,9 @@ public class InnerLoggerFactory extends InternalLoggerFactory {
         Logger.getRepository().shutdown();
     }
 
+    /**
+     * 工厂对象
+     */
     public static class InnerLogger implements InternalLogger {
 
         private Logger logger;

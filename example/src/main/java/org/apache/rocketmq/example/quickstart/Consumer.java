@@ -51,6 +51,9 @@ public class Consumer {
          */
         consumer.setNamesrvAddr("127.0.0.1:9876");
 
+        // 消费模式，默认是集群消费
+//        consumer.setMessageModel();
+
         /*
          * Specify where to start in case the specified consumer group is a brand new one.
          */

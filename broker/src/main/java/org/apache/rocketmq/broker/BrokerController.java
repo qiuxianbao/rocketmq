@@ -268,9 +268,11 @@ public class BrokerController {
         result = result && this.messageStore.load();
 
         if (result) {
+            //
             this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.clientHousekeepingService);
             NettyServerConfig fastConfig = (NettyServerConfig) this.nettyServerConfig.clone();
             fastConfig.setListenPort(nettyServerConfig.getListenPort() - 2);
+            //
             this.fastRemotingServer = new NettyRemotingServer(fastConfig, this.clientHousekeepingService);
             // 发送消息的线程池
             this.sendMessageExecutor = new BrokerFixedThreadPoolExecutor(

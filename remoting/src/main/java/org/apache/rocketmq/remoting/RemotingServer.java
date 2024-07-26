@@ -17,7 +17,6 @@
 package org.apache.rocketmq.remoting;
 
 import io.netty.channel.Channel;
-import java.util.concurrent.ExecutorService;
 import org.apache.rocketmq.remoting.common.Pair;
 import org.apache.rocketmq.remoting.exception.RemotingSendRequestException;
 import org.apache.rocketmq.remoting.exception.RemotingTimeoutException;
@@ -25,13 +24,33 @@ import org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException;
 import org.apache.rocketmq.remoting.netty.NettyRequestProcessor;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
-// TODO-QIU: 2024年3月30日, 0030
-// 远程服务端
+import java.util.concurrent.ExecutorService;
+
+/**
+ * 远程服务端
+ */
 public interface RemotingServer extends RemotingService {
 
+    /**
+     * 注册处理器
+     *
+     * @param requestCode
+     * @param processor
+     * @param executor
+     */
     void registerProcessor(final int requestCode, final NettyRequestProcessor processor,
         final ExecutorService executor);
 
+    /**
+     * 注册默认处理器
+     *
+     * 调用方：
+     * NamesrvController#initialize
+     * BrokerController#initialize
+     *
+     * @param processor
+     * @param executor
+     */
     void registerDefaultProcessor(final NettyRequestProcessor processor, final ExecutorService executor);
 
     int localListenPort();

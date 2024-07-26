@@ -17,12 +17,24 @@
 
 package org.apache.rocketmq.remoting;
 
-// TODO-QIU: 2024年3月30日, 0030
-// 远程服务
+/**
+ * 远程服务的封装
+ */
 public interface RemotingService {
+
+    /**
+     * 开启
+     */
     void start();
 
+    /**
+     * 关闭
+     */
     void shutdown();
 
+    /**
+     * 注册远程调用钩子
+     * @param rpcHook
+     */
     void registerRPCHook(RPCHook rpcHook);
 }

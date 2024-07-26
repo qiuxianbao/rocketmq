@@ -19,6 +19,9 @@ package org.apache.rocketmq.remoting.netty;
 
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
+/**
+ * 回调操作
+ */
 public interface RemotingResponseCallback {
     void callback(RemotingCommand response);
 }

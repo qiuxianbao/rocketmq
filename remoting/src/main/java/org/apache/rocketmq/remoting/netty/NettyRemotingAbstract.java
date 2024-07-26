@@ -42,12 +42,14 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.*;
 
-// TODO-QIU: 2024年3月29日, 0029
-// Netty的封装
+/**
+ * Netty的封装
+ */
 public abstract class NettyRemotingAbstract {
 
     /**
      * Remoting logger instance.
+     * RocketmqRemoting
      */
     private static final InternalLogger log = InternalLoggerFactory.getLogger(RemotingHelper.ROCKETMQ_REMOTING);
 
@@ -61,12 +63,14 @@ public abstract class NettyRemotingAbstract {
      */
     protected final Semaphore semaphoreAsync;
 
+    // TODO-QIU: 2024年7月26日, 0026
     /**
      * This map caches all on-going requests.
      */
     protected final ConcurrentMap<Integer /* opaque */, ResponseFuture> responseTable =
         new ConcurrentHashMap<Integer, ResponseFuture>(256);
 
+    // TODO-QIU: 2024年7月26日, 0026
     /**
      * This container holds all processors per request code, aka, for each incoming request, we may look up the
      * responding processor in this map to handle the request.
@@ -75,17 +79,21 @@ public abstract class NettyRemotingAbstract {
         new HashMap<Integer, Pair<NettyRequestProcessor, ExecutorService>>(64);
 
     /**
+     * 自定义线程池
+     * 维护一个LinkedBlockingQueue，用于放Netty事件，等待监听器处理
      * Executor to feed netty events to user defined {@link ChannelEventListener}.
      */
     protected final NettyEventExecutor nettyEventExecutor = new NettyEventExecutor();
 
     /**
      * The default request processor to use in case there is no exact match in {@link #processorTable} per request code.
+     * 默认，初始化操作时绑定
      */
     protected Pair<NettyRequestProcessor, ExecutorService> defaultRequestProcessor;
 
     /**
      * SSL context via which to create {@link SslHandler}.
+     * TLS上下文
      */
     protected volatile SslContext sslContext;
 
@@ -146,12 +154,12 @@ public abstract class NettyRemotingAbstract {
         final RemotingCommand cmd = msg;
         if (cmd != null) {
             switch (cmd.getType()) {
+                // 请求
                 case REQUEST_COMMAND:
-                    // 请求
                     processRequestCommand(ctx, cmd);
                     break;
+                // 响应
                 case RESPONSE_COMMAND:
-                    // 返回
                     processResponseCommand(ctx, cmd);
                     break;
                 default:
@@ -280,6 +288,7 @@ public abstract class NettyRemotingAbstract {
     }
 
     /**
+     * 处理响应
      * Process response from remote peer to the previous issued requests.
      *
      * @param ctx channel handler context.
@@ -565,6 +574,14 @@ public abstract class NettyRemotingAbstract {
         }
     }
 
+    /**
+     * 自定义线程处理
+     * 阻塞队列
+     *
+     * 功能
+     * 1.放任务
+     * 2.处理任务
+     */
     class NettyEventExecutor extends ServiceThread {
         private final LinkedBlockingQueue<NettyEvent> eventQueue = new LinkedBlockingQueue<NettyEvent>();
         private final int maxSize = 10000;
@@ -581,23 +598,29 @@ public abstract class NettyRemotingAbstract {
         public void run() {
             log.info(this.getServiceName() + " service started");
 
+            // 监听器，BrokerHousekeepingService
             final ChannelEventListener listener = NettyRemotingAbstract.this.getChannelEventListener();
 
             while (!this.isStopped()) {
                 try {
+                    // 阻塞式等待
+                    // 每3s从队列链表中弹出一个事件，根据事件类型由监听器处理
                     NettyEvent event = this.eventQueue.poll(3000, TimeUnit.MILLISECONDS);
                     if (event != null && listener != null) {
                         switch (event.getType()) {
+                            // 空闲
                             case IDLE:
                                 listener.onChannelIdle(event.getRemoteAddr(), event.getChannel());
                                 break;
+                            // 通道关闭
                             case CLOSE:
-                                // 通道关闭
                                 listener.onChannelClose(event.getRemoteAddr(), event.getChannel());
                                 break;
+                            // 建立连接
                             case CONNECT:
                                 listener.onChannelConnect(event.getRemoteAddr(), event.getChannel());
                                 break;
+                            // 异常
                             case EXCEPTION:
                                 listener.onChannelException(event.getRemoteAddr(), event.getChannel());
                                 break;
