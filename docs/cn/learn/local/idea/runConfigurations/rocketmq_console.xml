@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="rocketmq-console" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="rocketmq-console-ng" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="org.apache.rocketmq.console.App" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
