@@ -165,7 +165,11 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                 }
             });
 
-        // 客户端配置
+        /**
+         * 客户端配置
+         * 真正的 connect 连接是在如下
+         * @see org.apache.rocketmq.remoting.netty.NettyRemotingClient#getAndCreateChannel(java.lang.String)
+         */
         Bootstrap handler = this.bootstrap.group(this.eventLoopGroupWorker).channel(NioSocketChannel.class)
             .option(ChannelOption.TCP_NODELAY, true)
             .option(ChannelOption.SO_KEEPALIVE, false)
@@ -190,7 +194,9 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                         new NettyEncoder(),
                         new NettyDecoder(),
                         new IdleStateHandler(0, 0, nettyClientConfig.getClientChannelMaxIdleTimeSeconds()),
+                        // 管理连接
                         new NettyConnectManageHandler(),
+                        // 处理消息
                         new NettyClientHandler());
                 }
             });

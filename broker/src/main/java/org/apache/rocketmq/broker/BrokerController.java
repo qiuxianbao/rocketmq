@@ -33,6 +33,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
+import io.netty.channel.ChannelHandlerContext;
 import org.apache.rocketmq.acl.AccessValidator;
 import org.apache.rocketmq.broker.client.ClientHousekeepingService;
 import org.apache.rocketmq.broker.client.ConsumerIdsChangeListener;
@@ -182,6 +184,7 @@ public class BrokerController {
         this.messageStoreConfig = messageStoreConfig;
         this.consumerOffsetManager = new ConsumerOffsetManager(this);
         // 主题
+        // 会添加默认Topic
         this.topicConfigManager = new TopicConfigManager(this);
         this.pullMessageProcessor = new PullMessageProcessor(this);
         this.pullRequestHoldService = new PullRequestHoldService(this);
@@ -791,6 +794,7 @@ public class BrokerController {
         } catch (InterruptedException e) {
         }
 
+        // 注销broker
         this.unregisterBrokerAll();
 
         if (this.sendMessageExecutor != null) {
@@ -902,12 +906,18 @@ public class BrokerController {
             this.registerBrokerAll(true, false, true);
         }
 
+        /**
+         * 发送心跳包
+         *
+         * 心跳包的处理
+         * @see org.apache.rocketmq.namesrv.processor.DefaultRequestProcessor#processRequest(ChannelHandlerContext, RemotingCommand)
+         */
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
             public void run() {
                 try {
-                    // 启动后延迟10s，之后每间隔10s ~ 60s（默认30s）
+                    // 启动后延迟10s，之后每间隔10s ~ 60s（默认30s, 每30s向namesrv报告自己还活着）
                     // 向集群中所有的 NameServer 发送心跳包，注册 Topic 路由信息
 
                     // forceRegister = true
@@ -980,6 +990,7 @@ public class BrokerController {
             this.getBrokerAddr(),
             this.brokerConfig.getBrokerName(),
             this.brokerConfig.getBrokerId(),
+            // brokerIP2
             this.getHAServerAddr(),
             // topicConfigTable
             topicConfigWrapper,

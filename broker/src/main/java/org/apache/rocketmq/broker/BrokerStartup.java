@@ -252,6 +252,7 @@ public class BrokerStartup {
                         if (!this.hasShutdown) {
                             this.hasShutdown = true;
                             long beginTime = System.currentTimeMillis();
+                            // Broker关闭操作
                             controller.shutdown();
                             long consumingTimeTotal = System.currentTimeMillis() - beginTime;
                             log.info("Shutdown hook over, consuming total time(ms): {}", consumingTimeTotal);

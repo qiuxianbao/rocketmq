@@ -88,6 +88,8 @@ public abstract class NettyRemotingAbstract {
     /**
      * The default request processor to use in case there is no exact match in {@link #processorTable} per request code.
      * 默认，初始化操作时绑定
+     *
+     * @see NettyRemotingServer#registerDefaultProcessor(NettyRequestProcessor, ExecutorService)
      */
     protected Pair<NettyRequestProcessor, ExecutorService> defaultRequestProcessor;
 

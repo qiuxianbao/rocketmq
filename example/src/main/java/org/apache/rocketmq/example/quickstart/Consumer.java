@@ -57,7 +57,7 @@ public class Consumer {
         /*
          * Specify where to start in case the specified consumer group is a brand new one.
          */
-//        consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
+       consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
 
         // CONSUME_FROM_MAX_OFFSET
         // 按照期望，应该是不会消费任何消息，只有等生产者再发送消息后，才会对消息进行消费，事实是这样吗？
@@ -75,7 +75,7 @@ public class Consumer {
 
         // 我们知道，消息消费者从 Broker 服务器拉取消息时，需要进行消费队列的负载，即 RebalancePushImpl
 
-        consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET);
+        // consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET);
 
         /*
          * Subscribe one more more topics to consume.

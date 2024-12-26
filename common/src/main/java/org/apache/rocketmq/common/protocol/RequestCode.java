@@ -17,6 +17,9 @@
 
 package org.apache.rocketmq.common.protocol;
 
+import io.netty.channel.ChannelHandlerContext;
+import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+
 /**
  * Netty的指令码
  */
@@ -187,15 +190,20 @@ public class RequestCode {
 
     /**
      * borker
+     * 注册Broker
+     * @see org.apache.rocketmq.namesrv.processor.DefaultRequestProcessor#processRequest(ChannelHandlerContext, RemotingCommand)
      */
-    // 注册Broker
     public static final int REGISTER_BROKER = 103;
 
-    // 注销Broker
+    /**
+     * 注销Broker
+     */
     public static final int UNREGISTER_BROKER = 104;
 
-
-    // 根据主题获取路由信息
+    /**
+     * 路由发现
+     * 根据主题获取路由信息
+     */
     public static final int GET_ROUTEINTO_BY_TOPIC = 105;
 
     // 获取Broker集群信息

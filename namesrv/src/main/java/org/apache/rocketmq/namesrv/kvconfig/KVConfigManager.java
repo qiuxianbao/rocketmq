@@ -44,6 +44,12 @@ public class KVConfigManager {
 
     /**
      * kvConfig.json的配置
+     *
+     * {
+     *   namespace : {
+     *      key: value
+     *   }
+     * }
      */
     private final HashMap<String/* Namespace */, HashMap<String/* Key */, String/* Value */>> configTable =
         new HashMap<String, HashMap<String, String>>();

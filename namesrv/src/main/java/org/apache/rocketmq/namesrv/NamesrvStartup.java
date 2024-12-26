@@ -77,7 +77,7 @@ public class NamesrvStartup {
     }
 
     /**
-     * 创建控制器
+     * 创建注册中心控制器
      *
      * @param args
      * @return
@@ -97,10 +97,13 @@ public class NamesrvStartup {
             return null;
         }
 
+        // namesrv业务参数
         final NamesrvConfig namesrvConfig = new NamesrvConfig();
+        // namesrv的网络配置
         final NettyServerConfig nettyServerConfig = new NettyServerConfig();
         nettyServerConfig.setListenPort(9876);
-        // namesrv的配置文件configFile，填充到 NamesrvConfig
+        // -c configFile 通过 -c 命令指定配置文件的路径
+        // namesrv的配置文件 configFile，填充到 NamesrvConfig
         if (commandLine.hasOption('c')) {
             String file = commandLine.getOptionValue('c');
             if (file != null) {
@@ -117,6 +120,27 @@ public class NamesrvStartup {
             }
         }
 
+        /**
+         * 技巧：使用 -p 在启动前可以打印查看参数
+         *
+         * 17:18:52.801 [main] INFO  RocketmqNamesrvConsole - rocketmqHome=C:\Idea\a-learn\rocketmq\local
+         * 17:18:52.807 [main] INFO  RocketmqNamesrvConsole - kvConfigPath=C:\Users\admin\namesrv\kvConfig.json
+         * 17:18:52.807 [main] INFO  RocketmqNamesrvConsole - configStorePath=C:\Users\admin\namesrv\namesrv.properties
+         * 17:18:52.807 [main] INFO  RocketmqNamesrvConsole - productEnvName=center
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - clusterTest=false
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - orderMessageEnable=false
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - listenPort=9876
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - serverWorkerThreads=8
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - serverCallbackExecutorThreads=0
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - serverSelectorThreads=3
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - serverOnewaySemaphoreValue=256
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - serverAsyncSemaphoreValue=64
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - serverChannelMaxIdleTimeSeconds=120
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - serverSocketSndBufSize=65535
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - serverSocketRcvBufSize=65535
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - serverPooledByteBufAllocatorEnable=true
+         * 17:18:52.808 [main] INFO  RocketmqNamesrvConsole - useEpollNativeSelector=false
+         */
         if (commandLine.hasOption('p')) {
             // Print all config item
             // RocketmqNamesrvConsole
@@ -151,7 +175,7 @@ public class NamesrvStartup {
         MixAll.printObjectProperties(log, namesrvConfig);
         MixAll.printObjectProperties(log, nettyServerConfig);
 
-        // 通过配置文件，初始化 new 对象
+        // 根据配置文件，初始化 new 对象
         final NamesrvController controller = new NamesrvController(namesrvConfig, nettyServerConfig);
 
         // remember all configs to prevent discard
@@ -174,7 +198,8 @@ public class NamesrvStartup {
             System.exit(-3);
         }
 
-        // 注册钩子用于异常退出可以销毁资源
+        // 技巧：如果代码中使用了线程池，一种优雅停机的方式就是注册一个JVM钩子函数，在JVM进程关闭之前，先将线程池关闭，及时释放资源
+        // 注册钩子函数，用于异常退出可以销毁资源
         // 比如：System.exit()
         Runtime.getRuntime().addShutdownHook(new ShutdownHookThread(log, new Callable<Void>() {
             @Override
@@ -184,7 +209,7 @@ public class NamesrvStartup {
             }
         }));
 
-        // 启动
+        // 启动服务器
         controller.start();
 
         return controller;

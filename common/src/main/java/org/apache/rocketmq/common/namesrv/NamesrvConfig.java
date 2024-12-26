@@ -27,22 +27,37 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 
 /**
- * 注册中心
+ * namesrv业务参数
  */
 public class NamesrvConfig {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
 
-    //  System.getenv()从 Enviroment variables中获取，ROCKETMQ_HOME=C:\Idea\a-learn\rocketmq\local
-    // System.getProperty() 是从VM operations中获取
+    /**
+     * 主目录
+     *
+     * System.getenv()从 Enviroment variables中获取，ROCKETMQ_HOME=C:\Idea\a-learn\rocketmq\local
+     * System.getProperty() 是从VM operations中获取
+     */
     private String rocketmqHome = System.getProperty(MixAll.ROCKETMQ_HOME_PROPERTY, System.getenv(MixAll.ROCKETMQ_HOME_ENV));
 
-    // namesrc的配置文件
-    // C:\Users\admin
+    /**
+     * namesrv存储KV配置配置属性的持久化路径
+     *
+     * C:\Users\admin
+     */
     private String kvConfigPath = System.getProperty("user.home") + File.separator + "namesrv" + File.separator + "kvConfig.json";
 
+    /**
+     * 默认配置文件路径
+     */
     private String configStorePath = System.getProperty("user.home") + File.separator + "namesrv" + File.separator + "namesrv.properties";
     private String productEnvName = "center";
     private boolean clusterTest = false;
+
+    /**
+     * 是否支持顺序消息
+     * 默认不支持
+     */
     private boolean orderMessageEnable = false;
 
     public boolean isOrderMessageEnable() {

@@ -121,15 +121,17 @@ public class NamesrvController {
 
 
     /**
-     * 初始化
+     * 初始化实例
+     *
      * @return
      */
     public boolean initialize() {
 
-        // 1.加载
+        // 1.加载KV配置
+        // 添加到 configTable 中
         this.kvConfigManager.load();
 
-        // 2.创建netty服务端
+        // 2.创建netty服务端，网络配置
         // 设置监听器
         this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.brokerHousekeepingService);
 
@@ -138,13 +140,14 @@ public class NamesrvController {
         this.remotingExecutor =
             Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
 
-        // 4.netty，注册处理器
+        // 4.netty，注册处理器，默认 DefaultRequestProcessor
         // 将默认处理器和线程池 remotingExecutor绑定
         this.registerProcessor();
 
-        // 2个周期线程池
-        // 每10s扫描broker，判断是否在线，
-        // 120s没收到，就认为broker已下线，就关闭通道并从路由表中剔除
+        // 5.开启2个定时任务，周期线程池
+        // 路由删除
+        // 每 10s 扫描一次 brokerLiveTable，检查上次收到心跳包的时间，比较当前时间与上一次时间，判断是broker否在线
+        // 如果超过 120s，就认为broker已下线，就关闭通道并从路由表中剔除，并移除与该broker相关的所有信息
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -153,7 +156,7 @@ public class NamesrvController {
             }
         }, 5, 10, TimeUnit.SECONDS);
 
-        // 每10min打印一次内存中KV的值
+        // 每 10min 打印一次内存中KV的值
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override

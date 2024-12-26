@@ -17,6 +17,30 @@
 package org.apache.rocketmq.broker.out;
 
 import com.google.common.collect.Lists;
+import org.apache.rocketmq.broker.BrokerController;
+import org.apache.rocketmq.broker.latency.BrokerFixedThreadPoolExecutor;
+import org.apache.rocketmq.broker.topic.TopicConfigManager;
+import org.apache.rocketmq.client.exception.MQBrokerException;
+import org.apache.rocketmq.common.DataVersion;
+import org.apache.rocketmq.common.MixAll;
+import org.apache.rocketmq.common.ThreadFactoryImpl;
+import org.apache.rocketmq.common.UtilAll;
+import org.apache.rocketmq.common.constant.LoggerName;
+import org.apache.rocketmq.common.namesrv.RegisterBrokerResult;
+import org.apache.rocketmq.common.namesrv.TopAddressing;
+import org.apache.rocketmq.common.protocol.RequestCode;
+import org.apache.rocketmq.common.protocol.ResponseCode;
+import org.apache.rocketmq.common.protocol.body.*;
+import org.apache.rocketmq.common.protocol.header.namesrv.*;
+import org.apache.rocketmq.logging.InternalLogger;
+import org.apache.rocketmq.logging.InternalLoggerFactory;
+import org.apache.rocketmq.remoting.RPCHook;
+import org.apache.rocketmq.remoting.RemotingClient;
+import org.apache.rocketmq.remoting.exception.*;
+import org.apache.rocketmq.remoting.netty.NettyClientConfig;
+import org.apache.rocketmq.remoting.netty.NettyRemotingClient;
+import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,39 +48,6 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import org.apache.rocketmq.broker.latency.BrokerFixedThreadPoolExecutor;
-import org.apache.rocketmq.client.exception.MQBrokerException;
-import org.apache.rocketmq.common.DataVersion;
-import org.apache.rocketmq.common.MixAll;
-import org.apache.rocketmq.common.ThreadFactoryImpl;
-import org.apache.rocketmq.common.UtilAll;
-import org.apache.rocketmq.common.constant.LoggerName;
-import org.apache.rocketmq.logging.InternalLogger;
-import org.apache.rocketmq.logging.InternalLoggerFactory;
-import org.apache.rocketmq.common.namesrv.RegisterBrokerResult;
-import org.apache.rocketmq.common.namesrv.TopAddressing;
-import org.apache.rocketmq.common.protocol.RequestCode;
-import org.apache.rocketmq.common.protocol.ResponseCode;
-import org.apache.rocketmq.common.protocol.body.ConsumerOffsetSerializeWrapper;
-import org.apache.rocketmq.common.protocol.body.KVTable;
-import org.apache.rocketmq.common.protocol.body.RegisterBrokerBody;
-import org.apache.rocketmq.common.protocol.body.SubscriptionGroupWrapper;
-import org.apache.rocketmq.common.protocol.body.TopicConfigSerializeWrapper;
-import org.apache.rocketmq.common.protocol.header.namesrv.QueryDataVersionRequestHeader;
-import org.apache.rocketmq.common.protocol.header.namesrv.QueryDataVersionResponseHeader;
-import org.apache.rocketmq.common.protocol.header.namesrv.RegisterBrokerRequestHeader;
-import org.apache.rocketmq.common.protocol.header.namesrv.RegisterBrokerResponseHeader;
-import org.apache.rocketmq.common.protocol.header.namesrv.UnRegisterBrokerRequestHeader;
-import org.apache.rocketmq.remoting.RPCHook;
-import org.apache.rocketmq.remoting.RemotingClient;
-import org.apache.rocketmq.remoting.exception.RemotingCommandException;
-import org.apache.rocketmq.remoting.exception.RemotingConnectException;
-import org.apache.rocketmq.remoting.exception.RemotingSendRequestException;
-import org.apache.rocketmq.remoting.exception.RemotingTimeoutException;
-import org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException;
-import org.apache.rocketmq.remoting.netty.NettyClientConfig;
-import org.apache.rocketmq.remoting.netty.NettyRemotingClient;
-import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
 public class BrokerOuterAPI {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
@@ -111,6 +102,22 @@ public class BrokerOuterAPI {
         this.remotingClient.updateNameServerAddressList(lst);
     }
 
+    /**
+     * 向所有的namesrv 发送心跳包
+     *
+     * @param clusterName 集群名称
+     * @param brokerAddr broker地址
+     * @param brokerName broker名称
+     * @param brokerId brokerId
+     *
+     * @param haServerAddr
+     * @param topicConfigWrapper topic主题配置信息
+     * @param filterServerList
+     * @param oneway
+     * @param timeoutMills
+     * @param compressed
+     * @return
+     */
     public List<RegisterBrokerResult> registerBrokerAll(
         final String clusterName,
         final String brokerAddr,
@@ -128,29 +135,47 @@ public class BrokerOuterAPI {
         List<String> nameServerAddressList = this.remotingClient.getNameServerAddressList();
         if (nameServerAddressList != null && nameServerAddressList.size() > 0) {
 
+            // 构建请求包头
             final RegisterBrokerRequestHeader requestHeader = new RegisterBrokerRequestHeader();
             requestHeader.setBrokerAddr(brokerAddr);
             requestHeader.setBrokerId(brokerId);
             requestHeader.setBrokerName(brokerName);
             requestHeader.setClusterName(clusterName);
+
+            /**
+             * master地址
+             * 首次请求时为空，slave向namesrv注册后返回
+             */
+            // TODO-QIU: 2024年12月25日, 0025 debug
             requestHeader.setHaServerAddr(haServerAddr);
             requestHeader.setCompressed(compressed);
 
+
+            // 构建请求包体
             RegisterBrokerBody requestBody = new RegisterBrokerBody();
+
+            /**
+             * Topic主题配置，topicConfigTable
+             *
+             * @see TopicConfigManager#buildTopicConfigSerializeWrapper()
+             * @see TopicConfigManager#TopicConfigManager(BrokerController)
+             */
             requestBody.setTopicConfigSerializeWrapper(topicConfigWrapper);
+            // 消息过滤服务器列表
             requestBody.setFilterServerList(filterServerList);
             final byte[] body = requestBody.encode(compressed);
-            // TODO-QIU: 2024年3月30日, 0030 crc32是什么
             final int bodyCrc32 = UtilAll.crc32(body);
             requestHeader.setBodyCrc32(bodyCrc32);
 
-            // list循环用线程池的用法
+            // 技巧：list循环用线程池的用法
             final CountDownLatch countDownLatch = new CountDownLatch(nameServerAddressList.size());
+            // 遍历所有的namesrv列表
             for (final String namesrvAddr : nameServerAddressList) {
                 brokerOuterExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
+                            // 分别向namesrv注册
                             RegisterBrokerResult result = registerBroker(namesrvAddr,oneway, timeoutMills,requestHeader,body);
                             if (result != null) {
                                 registerBrokerResultList.add(result);

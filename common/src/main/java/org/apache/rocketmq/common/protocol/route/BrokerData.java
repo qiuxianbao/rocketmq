@@ -40,6 +40,7 @@ public class BrokerData implements Comparable<BrokerData> {
 
     /**
      * broker的注册列表
+     * brokerId=0 为 master，大于0为slave
      */
     private HashMap<Long/* brokerId */, String/* broker address */> brokerAddrs;
 

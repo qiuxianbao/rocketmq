@@ -260,8 +260,8 @@
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <append>true</append>
         <encoder>
-<!--            <pattern>%d{yyy-MM-dd HH\:mm\:ss,GMT+8} %p %t - %m%n</pattern>-->
-            <pattern>%d{yyyy-MM-dd HH\:mm\:ss,SSS} [%thread] %-5level %logger{36} - %caller ------------ %msg%throwable ------------%n</pattern>
+            <pattern>%d{yyy-MM-dd HH\:mm\:ss,GMT+8} %p %t - %m%n</pattern>
+<!--            <pattern>%d{yyyy-MM-dd HH\:mm\:ss,SSS} [%thread] %-5level %logger{36} - %caller &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45; %msg%throwable &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;%n</pattern>-->
             <charset class="java.nio.charset.Charset">UTF-8</charset>
         </encoder>
     </appender>

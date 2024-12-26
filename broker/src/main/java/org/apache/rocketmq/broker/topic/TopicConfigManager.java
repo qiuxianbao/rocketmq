@@ -40,14 +40,16 @@ import org.apache.rocketmq.common.sysflag.TopicSysFlag;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 
-// TODO-QIU: 2024年3月29日, 0029
+/**
+ * Topic配置管理
+ */
 public class TopicConfigManager extends ConfigManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final long LOCK_TIMEOUT_MILLIS = 3000;
     private transient final Lock lockTopicConfigTable = new ReentrantLock();
 
-    // 路由信息，包含topic名称、读写队列等
     /**
+     * Topic配置
      * "topicConfigTable":{
      * 		"TopicTest":{
      * 			"order":false,
@@ -63,15 +65,17 @@ public class TopicConfigManager extends ConfigManager {
     private final ConcurrentMap<String, /*topic name*/ TopicConfig> topicConfigTable =
         new ConcurrentHashMap<String, TopicConfig>(1024);
 
-    // Topic
     private final DataVersion dataVersion = new DataVersion();
+
+    /**
+     * 系统Topic
+     */
     private final Set<String> systemTopicList = new HashSet<String>();
     private transient BrokerController brokerController;
 
     public TopicConfigManager() {
     }
 
-    // TODO-QIU: 2024年3月29日, 0029
     public TopicConfigManager(BrokerController brokerController) {
         this.brokerController = brokerController;
         {

@@ -107,12 +107,15 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
         // 设置监听
         this.channelEventListener = channelEventListener;
 
+        /**
+         * 默认是0，初始化为4个
+         * @see NettyServerConfig#serverCallbackExecutorThreads
+         */
         int publicThreadNums = nettyServerConfig.getServerCallbackExecutorThreads();
         if (publicThreadNums <= 0) {
             publicThreadNums = 4;
         }
 
-        // TODO-QIU: 2024年7月24日, 0024 作用
         this.publicExecutor = Executors.newFixedThreadPool(publicThreadNums, new ThreadFactory() {
             private AtomicInteger threadIndex = new AtomicInteger(0);
 
@@ -213,7 +216,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
         // 准备处理器
         // TLS、编解码
         // 连接管理，放NettyEvent；等着BrokerHousekeepingService监听器处理
-        // 请求处理
+        // NettyServerHandler 请求处理
         prepareSharableHandlers();
 
         // server的配置
