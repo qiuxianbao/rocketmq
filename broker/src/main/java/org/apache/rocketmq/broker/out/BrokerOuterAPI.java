@@ -103,6 +103,7 @@ public class BrokerOuterAPI {
     }
 
     /**
+     * 路由注册（发送端）
      * 向所有的namesrv 发送心跳包
      *
      * @param clusterName 集群名称
@@ -159,6 +160,7 @@ public class BrokerOuterAPI {
              *
              * @see TopicConfigManager#buildTopicConfigSerializeWrapper()
              * @see TopicConfigManager#TopicConfigManager(BrokerController)
+             * @see org.apache.rocketmq.broker.BrokerController#initialize()
              */
             requestBody.setTopicConfigSerializeWrapper(topicConfigWrapper);
             // 消息过滤服务器列表

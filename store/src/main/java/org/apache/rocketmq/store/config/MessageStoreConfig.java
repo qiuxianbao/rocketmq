@@ -20,7 +20,12 @@ import java.io.File;
 import org.apache.rocketmq.common.annotation.ImportantField;
 import org.apache.rocketmq.store.ConsumeQueue;
 
-// TODO-QIU: 2024年3月29日, 0029
+/**
+ * 消息存储配置
+ *
+ * 创建
+ * @see org.apache.rocketmq.broker.BrokerStartup#createBrokerController(String[])
+ */
 public class MessageStoreConfig {
     //The root directory in which the log data is kept
     @ImportantField

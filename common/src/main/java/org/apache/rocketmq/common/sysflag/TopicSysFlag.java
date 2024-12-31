@@ -19,12 +19,12 @@ package org.apache.rocketmq.common.sysflag;
 public class TopicSysFlag {
 
     /**
-     * 01
+     * 二进制：01
      */
     private final static int FLAG_UNIT = 0x1 << 0;
 
     /**
-     * 10
+     * 二进制：10
      */
     private final static int FLAG_UNIT_SUB = 0x1 << 1;
 

@@ -22,6 +22,9 @@ import org.apache.rocketmq.common.constant.PermName;
  * Topic主题配置信息
  * 默认存储在 ${ROCKETMQ_HOME}/store/config/topic.json
  *
+ * 说明：
+ * 4.x版本和5.x版本有区别
+ *
  * 示例：
  * {
  * 	"dataVersion":{

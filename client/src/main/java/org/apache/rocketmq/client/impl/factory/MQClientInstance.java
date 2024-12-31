@@ -85,8 +85,9 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.apache.rocketmq.remoting.netty.NettyClientConfig;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
-// TODO-QIU: 2024年3月29日, 0029
-// MQ的客户端
+/**
+ * MQ的客户端实例
+ */
 public class MQClientInstance {
     private final static long LOCK_TIMEOUT_MILLIS = 3000;
     private final InternalLogger log = ClientLogger.getLog();
@@ -94,7 +95,14 @@ public class MQClientInstance {
     private final int instanceIndex;
     private final String clientId;
     private final long bootTimestamp = System.currentTimeMillis();
+
+    /**
+     * 生产者实例
+     * group是producerGroup生产者组
+     */
     private final ConcurrentMap<String/* group */, MQProducerInner> producerTable = new ConcurrentHashMap<String, MQProducerInner>();
+
+
     private final ConcurrentMap<String/* group */, MQConsumerInner> consumerTable = new ConcurrentHashMap<String, MQConsumerInner>();
     private final ConcurrentMap<String/* group */, MQAdminExtInner> adminExtTable = new ConcurrentHashMap<String, MQAdminExtInner>();
     private final NettyClientConfig nettyClientConfig;
@@ -103,6 +111,10 @@ public class MQClientInstance {
     private final ConcurrentMap<String/* Topic */, TopicRouteData> topicRouteTable = new ConcurrentHashMap<String, TopicRouteData>();
     private final Lock lockNamesrv = new ReentrantLock();
     private final Lock lockHeartbeat = new ReentrantLock();
+
+    /**
+     * broker基础信息
+     */
     private final ConcurrentMap<String/* Broker Name */, HashMap<Long/* brokerId */, String/* address */>> brokerAddrTable =
         new ConcurrentHashMap<String, HashMap<Long, String>>();
     private final ConcurrentMap<String/* Broker Name */, HashMap<String/* address */, Integer>> brokerVersionTable =
@@ -161,9 +173,17 @@ public class MQClientInstance {
             MQVersion.getVersionDesc(MQVersion.CURRENT_VERSION), RemotingCommand.getSerializeTypeConfigInThisServer());
     }
 
+    /**
+     * 根据topic和路由信息构建TopicPublishInfo
+     *
+     * @param topic
+     * @param route
+     * @return
+     */
     public static TopicPublishInfo topicRouteData2TopicPublishInfo(final String topic, final TopicRouteData route) {
         TopicPublishInfo info = new TopicPublishInfo();
         info.setTopicRouteData(route);
+        // 顺序消息
         if (route.getOrderTopicConf() != null && route.getOrderTopicConf().length() > 0) {
             String[] brokers = route.getOrderTopicConf().split(";");
             for (String broker : brokers) {
@@ -178,25 +198,32 @@ public class MQClientInstance {
             info.setOrderTopic(true);
         } else {
             List<QueueData> qds = route.getQueueDatas();
+            // 按broker名称排序
             Collections.sort(qds);
             for (QueueData qd : qds) {
+                // 队列是写权限
                 if (PermName.isWriteable(qd.getPerm())) {
+                    // 循环队列数据
                     BrokerData brokerData = null;
                     for (BrokerData bd : route.getBrokerDatas()) {
+                        // 根据队列中的brokername获取到broker基础数据
                         if (bd.getBrokerName().equals(qd.getBrokerName())) {
                             brokerData = bd;
                             break;
                         }
                     }
 
+                    // 找不到，则忽略，当前队列不处理
                     if (null == brokerData) {
                         continue;
                     }
 
+                    // 如果没有主节点，则忽略，当前队列不处理
                     if (!brokerData.getBrokerAddrs().containsKey(MixAll.MASTER_ID)) {
                         continue;
                     }
 
+                    // 获取队列中写队列数量，构建消息队列
                     for (int i = 0; i < qd.getWriteQueueNums(); i++) {
                         MessageQueue mq = new MessageQueue(topic, qd.getBrokerName(), i);
                         info.getMessageQueueList().add(mq);
@@ -225,6 +252,7 @@ public class MQClientInstance {
         return mqList;
     }
 
+    // TODO-QIU: 2024年12月27日, 0027 消息消费时介绍
     public void start() throws MQClientException {
 
         synchronized (this) {
@@ -258,7 +286,9 @@ public class MQClientInstance {
 
     private void startScheduledTask() {
         if (null == this.clientConfig.getNamesrvAddr()) {
-            // 每间隔120更新namesrv的地址
+            /**
+             * 每间隔120更新namesrv的地址
+             */
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
                 @Override
@@ -277,7 +307,9 @@ public class MQClientInstance {
             @Override
             public void run() {
                 try {
-                    // 每间隔30s，从namesrv去获取topic
+                    /**
+                     * 每间隔30s，从namesrv去获取topic
+                     */
                     MQClientInstance.this.updateTopicRouteInfoFromNameServer();
                 } catch (Exception e) {
                     log.error("ScheduledTask updateTopicRouteInfoFromNameServer exception", e);
@@ -610,22 +642,33 @@ public class MQClientInstance {
         }
     }
 
-    // TODO-QIU: 2024年3月29日, 0029
-    // 生产者
+    /**
+     * 生产者
+     * 更新和维护路由缓存
+     *
+     * @param topic
+     * @param isDefault
+     * @param defaultMQProducer
+     * @return
+     */
     public boolean updateTopicRouteInfoFromNameServer(final String topic, boolean isDefault,
         DefaultMQProducer defaultMQProducer) {
         try {
+            // 申请锁，3s 超时
             if (this.lockNamesrv.tryLock(LOCK_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
                 try {
                     TopicRouteData topicRouteData;
+
+                    // 1.isDefault = true，则使用默认主题去查询
                     if (isDefault && defaultMQProducer != null) {
+                        // 默认topic主题
                         topicRouteData = this.mQClientAPIImpl.getDefaultTopicRouteInfoFromNameServer(defaultMQProducer.getCreateTopicKey(),
                             1000 * 3);
                         if (topicRouteData != null) {
                             for (QueueData data : topicRouteData.getQueueDatas()) {
                                 // 消息发送者从 Nameserver 获取到默认的 Topic 的队列信息后，队列的个数会改变吗？
                                 // 答案是会的
-                                // 故自动创建的主题，其队列数量默认为 4
+                                // 故自动创建的默认主题，其队列数量默认为 4
                                 int queueNums = Math.min(defaultMQProducer.getDefaultTopicQueueNums(), data.getReadQueueNums());
                                 data.setReadQueueNums(queueNums);
                                 data.setWriteQueueNums(queueNums);
@@ -634,9 +677,10 @@ public class MQClientInstance {
                     } else {
                         topicRouteData = this.mQClientAPIImpl.getTopicRouteInfoFromNameServer(topic, 1000 * 3);
                     }
+
                     if (topicRouteData != null) {
                         TopicRouteData old = this.topicRouteTable.get(topic);
-                        // 路由是否发生变化
+                        // 2.如果路由信息找到，与本地路由缓存进行对比，判断是否发生变化
                         boolean changed = topicRouteDataIsChange(old, topicRouteData);
                         if (!changed) {
                             changed = this.isNeedUpdateTopicRouteInfo(topic);
@@ -647,10 +691,15 @@ public class MQClientInstance {
                         if (changed) {
                             TopicRouteData cloneTopicRouteData = topicRouteData.cloneTopicRouteData();
 
+                            // 3.更新broker基础信息缓存列表
                             for (BrokerData bd : topicRouteData.getBrokerDatas()) {
                                 this.brokerAddrTable.put(bd.getBrokerName(), bd.getBrokerAddrs());
                             }
 
+                            /**
+                             * 4.根据topic和topic路由信息，构建成路由发布信息
+                             * 技巧：不同的逻辑，可以用代码块来区分，业务逻辑会更清晰
+                             */
                             // Update Pub info
                             {
                                 TopicPublishInfo publishInfo = topicRouteData2TopicPublishInfo(topic, topicRouteData);
@@ -660,6 +709,7 @@ public class MQClientInstance {
                                     Entry<String, MQProducerInner> entry = it.next();
                                     MQProducerInner impl = entry.getValue();
                                     if (impl != null) {
+                                        // 更新
                                         impl.updateTopicPublishInfo(topic, publishInfo);
                                     }
                                 }
@@ -679,6 +729,7 @@ public class MQClientInstance {
                             }
                             log.info("topicRouteTable.put. Topic = {}, TopicRouteData[{}]", topic, cloneTopicRouteData);
                             this.topicRouteTable.put(topic, cloneTopicRouteData);
+                            // 路由发生改变
                             return true;
                         }
                     } else {
@@ -701,6 +752,7 @@ public class MQClientInstance {
             log.warn("updateTopicRouteInfoFromNameServer Exception", e);
         }
 
+        // 路由未发生改变
         return false;
     }
 

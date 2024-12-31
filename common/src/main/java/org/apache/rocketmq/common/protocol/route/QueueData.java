@@ -124,9 +124,14 @@ public class QueueData implements Comparable<QueueData> {
             + "]";
     }
 
+    /**
+     * 用于排序
+     *
+     * @param o the object to be compared.
+     * @return
+     */
     @Override
     public int compareTo(QueueData o) {
-        // TODO-QIU: 2024年7月25日, 0025 比较的是Broker的名称
         return this.brokerName.compareTo(o.getBrokerName());
     }
 

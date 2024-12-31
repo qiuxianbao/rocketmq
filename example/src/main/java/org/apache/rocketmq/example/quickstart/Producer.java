@@ -25,7 +25,6 @@ import org.apache.rocketmq.remoting.common.RemotingHelper;
 /**
  * This class demonstrates how to send messages to brokers using provided {@link DefaultMQProducer}.
  */
-// TODO-QIU: 2024年3月29日, 0029
 public class Producer {
     public static void main(String[] args) throws MQClientException, InterruptedException {
 

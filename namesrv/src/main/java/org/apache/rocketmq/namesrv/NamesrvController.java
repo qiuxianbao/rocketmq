@@ -69,7 +69,7 @@ public class NamesrvController {
     private final RouteInfoManager routeInfoManager;
 
     /**
-     * 实例化 NettyRemotingServer
+     * netty服务端配置
      */
     private RemotingServer remotingServer;
 

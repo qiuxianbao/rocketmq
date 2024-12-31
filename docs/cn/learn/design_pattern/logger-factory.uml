@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.rocketmq.logging.InternalLoggerFactory</OriginalElement>
+  <nodes>
+    <node x="-110.5" y="166.0">org.apache.rocketmq.logging.Slf4jLoggerFactory</node>
+    <node x="7.0" y="106.0">org.apache.rocketmq.logging.InnerLoggerFactory</node>
+    <node x="-102.5" y="-14.0">org.apache.rocketmq.logging.InternalLoggerFactory</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.apache.rocketmq.logging.InnerLoggerFactory" target="org.apache.rocketmq.logging.InternalLoggerFactory" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="108.0" y="80.0" />
+      <point x="8.0" y="80.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.logging.Slf4jLoggerFactory" target="org.apache.rocketmq.logging.InternalLoggerFactory" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="-12.0" y="80.0" />
+      <point x="8.0" y="80.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.5" showDependencies="false" x="157.0" y="111.33333333333337" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

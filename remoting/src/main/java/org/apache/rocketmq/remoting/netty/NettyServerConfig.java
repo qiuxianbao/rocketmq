@@ -17,7 +17,7 @@
 package org.apache.rocketmq.remoting.netty;
 
 /**
- * namesrv的网络配置
+ * netty的网络配置
  */
 public class NettyServerConfig implements Cloneable {
 

@@ -39,6 +39,12 @@ public class MessageBatch extends Message implements Iterable<Message> {
         return messages.iterator();
     }
 
+    /**
+     * 将messages转换成MessageBatch对象
+     *
+     * @param messages
+     * @return
+     */
     public static MessageBatch generateFromList(Collection<Message> messages) {
         assert messages != null;
         assert messages.size() > 0;

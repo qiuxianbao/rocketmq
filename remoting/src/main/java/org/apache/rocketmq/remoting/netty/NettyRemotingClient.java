@@ -374,6 +374,10 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
     public RemotingCommand invokeSync(String addr, final RemotingCommand request, long timeoutMillis)
         throws InterruptedException, RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException {
         long beginStartTime = System.currentTimeMillis();
+        /**
+         * 根据 broker 的 addr 获取通道,
+         * 没有则创建，this.bootstrap.connect()
+         */
         final Channel channel = this.getAndCreateChannel(addr);
         // isActive即底层TCP连接处于激活状态
         if (channel != null && channel.isActive()) {

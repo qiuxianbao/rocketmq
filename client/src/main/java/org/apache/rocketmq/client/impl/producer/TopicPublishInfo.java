@@ -18,16 +18,40 @@ package org.apache.rocketmq.client.impl.producer;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import io.netty.channel.ChannelHandlerContext;
 import org.apache.rocketmq.client.common.ThreadLocalIndex;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.route.QueueData;
 import org.apache.rocketmq.common.protocol.route.TopicRouteData;
+import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+
 
 public class TopicPublishInfo {
+
+    /**
+     * 是否顺序消息
+     */
     private boolean orderTopic = false;
     private boolean haveTopicRouterInfo = false;
+
+    /**
+     * 该主题对应的消息队列数据
+     */
     private List<MessageQueue> messageQueueList = new ArrayList<MessageQueue>();
+
+    /**
+     * 用于选择消息队列
+     * 每选择一次队列，该值会增1
+     * 如果为最大值，则从0开始
+     */
     private volatile ThreadLocalIndex sendWhichQueue = new ThreadLocalIndex();
+
+    /**
+     * 路由发现
+     * 路由数据
+     * @see org.apache.rocketmq.namesrv.processor.DefaultRequestProcessor#getRouteInfoByTopic(ChannelHandlerContext, RemotingCommand)
+     */
     private TopicRouteData topicRouteData;
 
     public boolean isOrderTopic() {
@@ -66,7 +90,15 @@ public class TopicPublishInfo {
         this.haveTopicRouterInfo = haveTopicRouterInfo;
     }
 
+    /**
+     * 轮询
+     * 自动规避上一次失败的broker
+     *
+     * @param lastBrokerName
+     * @return
+     */
     public MessageQueue selectOneMessageQueue(final String lastBrokerName) {
+        // 首次执行
         if (lastBrokerName == null) {
             return selectOneMessageQueue();
         } else {
@@ -76,6 +108,10 @@ public class TopicPublishInfo {
                 if (pos < 0)
                     pos = 0;
                 MessageQueue mq = this.messageQueueList.get(pos);
+                /**
+                 * 如果上一次失败，则换一个broker
+                 * 规避上次MessageQueue所在的Broker，否则很有可能还是失败
+                 */
                 if (!mq.getBrokerName().equals(lastBrokerName)) {
                     return mq;
                 }
@@ -86,6 +122,7 @@ public class TopicPublishInfo {
 
     public MessageQueue selectOneMessageQueue() {
         int index = this.sendWhichQueue.getAndIncrement();
+        // 取模，求余
         int pos = Math.abs(index) % this.messageQueueList.size();
         if (pos < 0)
             pos = 0;

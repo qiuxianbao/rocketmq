@@ -17,6 +17,8 @@
 package org.apache.rocketmq.namesrv.processor;
 
 import io.netty.channel.ChannelHandlerContext;
+import org.apache.rocketmq.client.impl.factory.MQClientInstance;
+import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.DataVersion;
 import org.apache.rocketmq.common.MQVersion;
 import org.apache.rocketmq.common.MQVersion.Version;
@@ -113,6 +115,8 @@ public class DefaultRequestProcessor extends AsyncNettyRequestProcessor implemen
             /**
              * 路由发现（处理端）
              * 根据topic查询路由信息
+             *
+             * @see MQClientInstance#updateTopicRouteInfoFromNameServer(String, boolean, DefaultMQProducer)
              */
             case RequestCode.GET_ROUTEINTO_BY_TOPIC:
                 return this.getRouteInfoByTopic(ctx, request);
@@ -399,6 +403,7 @@ public class DefaultRequestProcessor extends AsyncNettyRequestProcessor implemen
         }
 
         // 如果找不到，则返回 Topic 不存在
+        // No topic route info in name server
         response.setCode(ResponseCode.TOPIC_NOT_EXIST);
         response.setRemark("No topic route info in name server for the topic: " + requestHeader.getTopic()
             + FAQUrl.suggestTodo(FAQUrl.APPLY_TOPIC_URL));

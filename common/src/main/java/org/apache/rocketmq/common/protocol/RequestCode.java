@@ -26,15 +26,18 @@ import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 public class RequestCode {
 
     /**
-     * 消息
+     * 发送消息
      */
-    // 发送消息
     public static final int SEND_MESSAGE = 10;
 
-    // 拉取消息
+    /**
+     * 拉取消息
+     */
     public static final int PULL_MESSAGE = 11;
 
-    // 查询消息
+    /**
+     * 查询消息
+     */
     public static final int QUERY_MESSAGE = 12;
 
 
@@ -203,6 +206,9 @@ public class RequestCode {
     /**
      * 路由发现
      * 根据主题获取路由信息
+     *
+     * 处理端
+     * @see org.apache.rocketmq.namesrv.processor.DefaultRequestProcessor#processRequest(ChannelHandlerContext, RemotingCommand)
      */
     public static final int GET_ROUTEINTO_BY_TOPIC = 105;
 

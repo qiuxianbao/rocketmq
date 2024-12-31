@@ -16,7 +16,9 @@
  */
 package org.apache.rocketmq.client.hook;
 
-// TODO-QIU: 2024年4月20日, 0020
+/**
+ * 发送消息前的钩子函数
+ */
 public interface SendMessageHook {
     String hookName();
 

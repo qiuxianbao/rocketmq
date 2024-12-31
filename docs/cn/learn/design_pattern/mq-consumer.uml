@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.rocketmq.client.impl.consumer.MQConsumerInner</OriginalElement>
+  <nodes>
+    <node x="-135.5" y="166.0">org.apache.rocketmq.client.impl.consumer.DefaultLitePullConsumerImpl</node>
+    <node x="-97.0" y="-14.0">org.apache.rocketmq.client.impl.consumer.MQConsumerInner</node>
+    <node x="20.0" y="106.0">org.apache.rocketmq.client.impl.consumer.DefaultMQPushConsumerImpl</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.apache.rocketmq.client.impl.consumer.DefaultLitePullConsumerImpl" target="org.apache.rocketmq.client.impl.consumer.MQConsumerInner" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.client.impl.consumer.DefaultMQPushConsumerImpl" target="org.apache.rocketmq.client.impl.consumer.MQConsumerInner" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="160.0" y="80.0" />
+      <point x="0.0" y="80.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.5" showDependencies="false" x="92.0" y="100.0" />
+  <SelectedNodes>
+    <node>org.apache.rocketmq.client.impl.consumer.MQConsumerInner</node>
+  </SelectedNodes>
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

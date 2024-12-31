@@ -16,19 +16,38 @@
  */
 package org.apache.rocketmq.common.message;
 
+import org.apache.rocketmq.common.sysflag.MessageSysFlag;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-// TODO-QIU: 2024年4月20日, 0020
+/**
+ * MQ的消息封装
+ */
 public class Message implements Serializable {
     private static final long serialVersionUID = 8445773977080406428L;
 
+    /**
+     * 所属的主题Topic
+     */
     private String topic;
+
+    /**
+     * @see MessageSysFlag
+     */
     private int flag;
+
+    /**
+     * 扩展属性
+     */
     private Map<String, String> properties;
+
+    /**
+     * 消息体
+     */
     private byte[] body;
     private String transactionId;
 
@@ -39,17 +58,31 @@ public class Message implements Serializable {
         this(topic, "", "", 0, body, true);
     }
 
+    /**
+     * 构建消息
+     *
+     * @param topic
+     * @param tags
+     * @param keys
+     * @param flag
+     * @param body
+     * @param waitStoreMsgOK
+     */
     public Message(String topic, String tags, String keys, int flag, byte[] body, boolean waitStoreMsgOK) {
+        // 所属主题
         this.topic = topic;
         this.flag = flag;
         this.body = body;
 
         if (tags != null && tags.length() > 0)
+            // 用于消息过滤
             this.setTags(tags);
 
         if (keys != null && keys.length() > 0)
+            // Message索引键，用空格隔开，RocketMQ可以根据这些key快速检索到消息。可用于标识唯一性，做幂等处理
             this.setKeys(keys);
 
+        // 消息发送时，是否等消息存储完成后再返回
         this.setWaitStoreMsgOK(waitStoreMsgOK);
     }
 
@@ -147,6 +180,8 @@ public class Message implements Serializable {
     }
 
     public void setDelayTimeLevel(int level) {
+        // 消息延迟级别
+        // 用于定时消息或消息重试
         this.putProperty(MessageConst.PROPERTY_DELAY_TIME_LEVEL, String.valueOf(level));
     }
 

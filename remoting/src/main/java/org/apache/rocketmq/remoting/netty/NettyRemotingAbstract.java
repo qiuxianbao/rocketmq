@@ -59,6 +59,7 @@ public abstract class NettyRemotingAbstract {
     protected final Semaphore semaphoreOneway;
 
     /**
+     * 对异步消息进行并发控制，保护消息服务器的负载压力
      * Semaphore to limit maximum number of on-going asynchronous requests, which protects system memory footprint.
      */
     protected final Semaphore semaphoreAsync;
@@ -70,8 +71,12 @@ public abstract class NettyRemotingAbstract {
     protected final ConcurrentMap<Integer /* opaque */, ResponseFuture> responseTable =
         new ConcurrentHashMap<Integer, ResponseFuture>(256);
 
-    // TODO-QIU: 2024年7月26日, 0026
     /**
+     * 定义请求处理器
+     *
+     * 每一个requestCode对应一个处理器
+     * 每一个处理器通过Pair绑定一个线程，进行线程隔离
+     *
      * This container holds all processors per request code, aka, for each incoming request, we may look up the
      * responding processor in this map to handle the request.
      */

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.rocketmq.client.impl.producer.MQProducerInner</OriginalElement>
+  <nodes>
+    <node x="-92.0" y="-14.0">org.apache.rocketmq.client.impl.producer.MQProducerInner</node>
+    <node x="-116.0" y="106.0">org.apache.rocketmq.client.impl.producer.DefaultMQProducerImpl</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.apache.rocketmq.client.impl.producer.DefaultMQProducerImpl" target="org.apache.rocketmq.client.impl.producer.MQProducerInner" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.5" showDependencies="false" x="10.0" y="70.0" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

@@ -18,6 +18,9 @@ package org.apache.rocketmq.common.message;
 
 import java.util.HashSet;
 
+/**
+ * 消息常量
+ */
 public class MessageConst {
     public static final String PROPERTY_KEYS = "KEYS";
     public static final String PROPERTY_TAGS = "TAGS";
@@ -57,6 +60,7 @@ public class MessageConst {
 
     public static final HashSet<String> STRING_HASH_SET = new HashSet<String>();
 
+    // 技巧：通过代码块初始化
     static {
         STRING_HASH_SET.add(PROPERTY_TRACE_SWITCH);
         STRING_HASH_SET.add(PROPERTY_MSG_REGION);

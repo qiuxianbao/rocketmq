@@ -16,17 +16,23 @@
  */
 package org.apache.rocketmq.common.message;
 
+import org.apache.rocketmq.common.UtilAll;
+
 import java.nio.ByteBuffer;
-import java.sql.SQLOutput;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.rocketmq.common.UtilAll;
 
-// TODO-QIU: 2024年4月20日, 0020
+/**
+ * 消息ID生成器
+ */
 public class MessageClientIDSetter {
     private static final String TOPIC_KEY_SPLITTER = "#";
     private static final int LEN;
+
+    /**
+     * 字节(客户端ip + 进程ID + 类加载器hashCode)转String字符串
+     */
     private static final String FIX_STRING;
     private static final AtomicInteger COUNTER;
     private static long startTime;
@@ -117,7 +123,12 @@ public class MessageClientIDSetter {
         return value & 0x0000FFFF;
     }
 
-    // 生成全局唯一id
+    /**
+     * 生成全局唯一id
+     * 固定前缀 + （当前时间与系统启动时间的差值 + 自增序号）
+     *
+     * @return
+     */
     public static String createUniqID() {
         StringBuilder sb = new StringBuilder(LEN * 2);
         // 固定前缀
@@ -139,6 +150,7 @@ public class MessageClientIDSetter {
     }
 
     public static void setUniqID(final Message msg) {
+        // UNIQ_KEY
         if (msg.getProperty(MessageConst.PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX) == null) {
             msg.putProperty(MessageConst.PROPERTY_UNIQ_CLIENT_MESSAGE_ID_KEYIDX, createUniqID());
         }

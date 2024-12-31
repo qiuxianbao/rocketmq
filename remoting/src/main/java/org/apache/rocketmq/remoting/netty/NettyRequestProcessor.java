@@ -27,6 +27,8 @@ import org.apache.rocketmq.remoting.protocol.RemotingCommand;
  * 不同的请求命令 CODE，服务端会将客户端请求进行分类，每个命令或每类请求命令定义一个处理器(NettyRequestProcessor)，
  * 然后每一个 NettyRequestProcessor 绑定到一个单独的线程池，进行命令处理，
  * 不同类型的请求将使用不同的线程池进行处理，实现线程隔离。
+ *
+ * @see NettyRemotingAbstract#processorTable
  */
 public interface NettyRequestProcessor {
     RemotingCommand processRequest(ChannelHandlerContext ctx, RemotingCommand request)

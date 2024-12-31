@@ -27,6 +27,7 @@ import org.apache.rocketmq.store.config.BrokerRole;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
 
 /**
+ * 消息存储
  * This class defines contracting interfaces to implement, allowing third-party vendor to use customized message store.
  */
 public interface MessageStore {

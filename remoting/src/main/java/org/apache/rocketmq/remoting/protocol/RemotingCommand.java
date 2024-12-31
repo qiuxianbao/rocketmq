@@ -32,7 +32,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-// TODO-QIU: 2024年7月24日, 0024
+/**
+ * RocketMQ网络请求命令
+ */
 public class RemotingCommand {
     public static final String SERIALIZE_TYPE_PROPERTY = "rocketmq.serialize.type";
     public static final String SERIALIZE_TYPE_ENV = "ROCKETMQ_SERIALIZE_TYPE";
@@ -75,19 +77,52 @@ public class RemotingCommand {
         }
     }
 
+    /**
+     * Netty的请求指令码
+     * @see org.apache.rocketmq.common.protocol.RequestCode
+     */
     private int code;
+
     private LanguageCode language = LanguageCode.JAVA;
+
+    /**
+     * 版本号
+     */
     private int version = 0;
-    // TODO-QIU: 2024年7月24日, 0024
-    // 从0自增
+
+    /**
+     * 客户端请求序号
+     * 从0自增
+     */
     private int opaque = requestId.getAndIncrement();
+
+    /**
+     * 标记
+     * 倒数第1位表示请求类型：0-请求，1-响应
+     * 倒数第2位：1-单向请求
+     */
     private int flag = 0;
+
+    /**
+     * 描述
+     */
     private String remark;
+
+    /**
+     * 扩展属性
+     */
     private HashMap<String, String> extFields;
+
+    /**
+     * 每个请求对应的请求头信息
+     */
     private transient CommandCustomHeader customHeader;
 
     private SerializeType serializeTypeCurrentRPC = serializeTypeConfigInThisServer;
 
+    /**
+     * 消息体内容
+     */
     private transient byte[] body;
 
     protected RemotingCommand() {

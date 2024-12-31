@@ -35,6 +35,7 @@ public abstract class ConfigManager {
             if (null == jsonString || jsonString.length() == 0) {
                 return this.loadBak();
             } else {
+                // 加载配置文件
                 this.decode(jsonString);
                 log.info("load " + fileName + " OK");
                 return true;

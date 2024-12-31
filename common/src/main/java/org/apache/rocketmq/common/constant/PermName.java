@@ -16,7 +16,10 @@
  */
 package org.apache.rocketmq.common.constant;
 
-// TODO-QIU: 2024年3月29日, 0029
+
+/**
+ *
+ */
 public class PermName {
     public static final int PERM_PRIORITY = 0x1 << 3;
     // 4

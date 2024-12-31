@@ -212,7 +212,7 @@ public class RouteInfoManager {
     }
 
     /**
-     * 路由注册（发起端）
+     * 路由注册（接收端）
      * 接收到 broker 发送的心跳包，namesrv进行处理
      *
      * @param clusterName

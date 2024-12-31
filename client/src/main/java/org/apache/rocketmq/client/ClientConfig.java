@@ -55,6 +55,8 @@ public class ClientConfig {
     private int persistConsumerOffsetInterval = 1000 * 5;
     private long pullTimeDelayMillsWhenException = 1000;
     private boolean unitMode = false;
+
+    // TODO-QIU: 2024年12月27日, 0027
     private String unitName;
     private boolean vipChannelEnabled = Boolean.parseBoolean(System.getProperty(SEND_MESSAGE_WITH_VIP_CHANNEL_PROPERTY, "false"));
 
@@ -62,6 +64,10 @@ public class ClientConfig {
 
     private LanguageCode language = LanguageCode.JAVA;
 
+    /**
+     * 构建客户端ID
+     * @return ip@instanceName/pid@unitName
+     */
     public String buildMQClientId() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.getClientIP());
@@ -93,6 +99,12 @@ public class ClientConfig {
     }
 
     public void changeInstanceNameToPID() {
+        /**
+         * 如果实例名是默认的 DEFAULT, 则需要将实例名转换成当前进程ID
+         * 这样避免不同进程的相互影响，但同一个JVM中的不同消费者和不同生产者在启动时获取到MQClientInstance实例是同一个
+         *
+         * 这样处理的原因：同一个物理服务器部署两个应用程序
+         */
         if (this.instanceName.equals("DEFAULT")) {
             this.instanceName = String.valueOf(UtilAll.getPid());
         }
