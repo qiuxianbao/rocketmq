@@ -18,6 +18,7 @@
 package org.apache.rocketmq.store;
 
 /**
+ * CommitLog文件转发请求处理
  * Dispatcher of commit log.
  */
 public interface CommitLogDispatcher {

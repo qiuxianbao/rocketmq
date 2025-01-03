@@ -22,6 +22,8 @@ import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 
+import java.nio.ByteBuffer;
+
 /**
  * This class demonstrates how to send messages to brokers using provided {@link DefaultMQProducer}.
  */
@@ -74,6 +76,10 @@ public class Producer {
                 // offsetMsgId含义
                 // 消息偏移 ID，该 ID 记录了消息所在集群的物理地址，
                 // 主要包含所存储Broker 服务器的地址(IP 与端口号)以及所在 commitlog 文件的物理偏移量。
+                /**
+                 * @see org.apache.rocketmq.store.CommitLog.DefaultAppendMessageCallback#doAppend(long, ByteBuffer, int, org.apache.rocketmq.store.MessageExtBrokerInner)
+                 */
+
 
 //             SendResult [
 //                  sendStatus=SEND_OK,

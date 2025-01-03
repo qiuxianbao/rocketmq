@@ -17,23 +17,38 @@
 package org.apache.rocketmq.store;
 
 /**
+ * 追加消息到CommitLog后，返回结果
  * When write a message to the commit log, returns results
  */
 public class AppendMessageResult {
     // Return code
     private AppendMessageStatus status;
+
+    /**
+     * 消息的物理偏移量
+     */
     // Where to start writing
     private long wroteOffset;
+
     // Write Bytes
     private int wroteBytes;
+
     // Message ID
     private String msgId;
     // Message storage timestamp
     private long storeTimestamp;
+
+    /**
+     * 消息消费队列逻辑偏移量
+     */
     // Consume queue's offset(step by one)
     private long logicsOffset;
     private long pagecacheRT = 0;
 
+    /**
+     * 消息条数
+     * 批量发送时消息条数
+     */
     private int msgNum = 1;
 
     public AppendMessageResult(AppendMessageStatus status) {

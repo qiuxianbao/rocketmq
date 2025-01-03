@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.rocketmq.common.message.Message</OriginalElement>
+  <nodes>
+    <node x="18.0" y="226.0">org.apache.rocketmq.common.message.MessageBatch</node>
+    <node x="-72.0" y="286.0">org.apache.rocketmq.common.message.MessageExt</node>
+    <node x="-117.0" y="466.0">org.apache.rocketmq.store.MessageExtBrokerInner</node>
+    <node x="-68.5" y="-14.0">java.io.Serializable</node>
+    <node x="-59.5" y="106.0">org.apache.rocketmq.common.message.Message</node>
+    <node x="45.5" y="406.0">org.apache.rocketmq.common.message.MessageClientExt</node>
+    <node x="165.5" y="466.0">org.apache.rocketmq.common.message.MessageExtBatch</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.apache.rocketmq.common.message.MessageClientExt" target="org.apache.rocketmq.common.message.MessageExt" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="140.0" y="380.0" />
+      <point x="0.0" y="380.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.common.message.Message" target="java.io.Serializable" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.common.message.MessageExt" target="org.apache.rocketmq.common.message.Message" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.store.MessageExtBrokerInner" target="org.apache.rocketmq.common.message.MessageExt" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.common.message.MessageBatch" target="org.apache.rocketmq.common.message.Message" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="100.0" y="200.0" />
+      <point x="0.0" y="200.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.common.message.MessageExtBatch" target="org.apache.rocketmq.common.message.MessageExt" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="260.0" y="380.0" />
+      <point x="0.0" y="380.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.5" showDependencies="false" x="105.0" y="274.0" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

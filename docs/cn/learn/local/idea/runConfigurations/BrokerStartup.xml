@@ -6,6 +6,7 @@
     <option name="MAIN_CLASS_NAME" value="org.apache.rocketmq.broker.BrokerStartup" />
     <module name="rocketmq-broker" />
     <option name="PROGRAM_PARAMETERS" value="-c C:\Idea\a-learn\rocketmq\local\conf\broker.conf" />
+    <option name="VM_PARAMETERS" value="-Duser.home=C:\\Idea\\a-learn\\rocketmq\\local" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="org.apache.rocketmq.broker.*" />

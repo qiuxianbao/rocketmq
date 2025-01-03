@@ -41,7 +41,9 @@ import org.apache.rocketmq.store.config.FlushDiskType;
 import org.apache.rocketmq.store.util.LibC;
 import sun.nio.ch.DirectBuffer;
 
-// TODO-QIU: 2024年4月11日, 0011
+/**
+ * 内存映射文件
+ */
 public class MappedFile extends ReferenceResource {
     public static final int OS_PAGE_SIZE = 1024 * 4;
     protected static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
@@ -49,16 +51,21 @@ public class MappedFile extends ReferenceResource {
     private static final AtomicLong TOTAL_MAPPED_VIRTUAL_MEMORY = new AtomicLong(0);
 
     private static final AtomicInteger TOTAL_MAPPED_FILES = new AtomicInteger(0);
-    // 写的位置
+
+    /**
+     * 写的位置
+     */
     protected final AtomicInteger wrotePosition = new AtomicInteger(0);
+
     protected final AtomicInteger committedPosition = new AtomicInteger(0);
     private final AtomicInteger flushedPosition = new AtomicInteger(0);
     protected int fileSize;
     protected FileChannel fileChannel;
     /**
+     * 写消息
+     * 消息会首先放入writeBuffer，然后put到FileChannel中
      * Message will put to here first, and then reput to FileChannel if writeBuffer is not null.
      */
-    // 写消息
     protected ByteBuffer writeBuffer = null;
     protected TransientStorePool transientStorePool = null;
     private String fileName;
@@ -200,7 +207,16 @@ public class MappedFile extends ReferenceResource {
         return fileChannel;
     }
 
-    // 追加消息
+    /**
+     * 追加消息
+     *
+     * caller
+     * @see CommitLog#putMessage(MessageExtBrokerInner)
+     *
+     * @param msg
+     * @param cb
+     * @return
+     */
     public AppendMessageResult appendMessage(final MessageExtBrokerInner msg, final AppendMessageCallback cb) {
         return appendMessagesInner(msg, cb);
     }
@@ -209,28 +225,48 @@ public class MappedFile extends ReferenceResource {
         return appendMessagesInner(messageExtBatch, cb);
     }
 
-    // 追加数据
+    /**
+     * 追加数据
+     *
+     * @param messageExt
+     * @param cb
+     * @return
+     */
     public AppendMessageResult appendMessagesInner(final MessageExt messageExt, final AppendMessageCallback cb) {
         // VM -ea
         assert messageExt != null;
         assert cb != null;
 
+        // 6.获取MappedFile当前写指针
         int currentPos = this.wrotePosition.get();
 
+        /**
+         * 如果currentPos >= this.fileSize 标识已经满了
+         * @see org.apache.rocketmq.store.MappedFile#isFull()         *
+         */
         if (currentPos < this.fileSize) {
-            // writeBuffer != null 说明开启了transientStorePoolEnable 机制
-            // 则消息首先写入 writerBuffer 中，如果其为空，则写入 mappedByteBuffer 中
+
+            // TODO-QIU: 2025年1月3日, 0003
+
+            /**
+             * writeBuffer != null 说明开启了transientStorePoolEnable 机制
+             * 则消息首先写入 writerBuffer 中，如果其为空，则写入 mappedByteBuffer 中
+             * this.mappedByteBuffer.slice() 创建一个与MappedFile的共享内存区，并设置position为当前写指针
+             */
             ByteBuffer byteBuffer = writeBuffer != null ? writeBuffer.slice() : this.mappedByteBuffer.slice();
             byteBuffer.position(currentPos);
+
             AppendMessageResult result;
             if (messageExt instanceof MessageExtBrokerInner) {
-                //
+                // 通过回调函数追加
                 result = cb.doAppend(this.getFileFromOffset(), byteBuffer, this.fileSize - currentPos, (MessageExtBrokerInner) messageExt);
             } else if (messageExt instanceof MessageExtBatch) {
                 result = cb.doAppend(this.getFileFromOffset(), byteBuffer, this.fileSize - currentPos, (MessageExtBatch) messageExt);
             } else {
                 return new AppendMessageResult(AppendMessageStatus.UNKNOWN_ERROR);
             }
+
+            // 写位置类+
             this.wrotePosition.addAndGet(result.getWroteBytes());
             this.storeTimestamp = result.getStoreTimestamp();
             return result;
@@ -391,6 +427,11 @@ public class MappedFile extends ReferenceResource {
         this.flushedPosition.set(pos);
     }
 
+    /**
+     * 判断是否写满数据
+     *
+     * @return
+     */
     public boolean isFull() {
         return this.fileSize == this.wrotePosition.get();
     }

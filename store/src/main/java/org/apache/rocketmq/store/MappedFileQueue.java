@@ -48,6 +48,13 @@ public class MappedFileQueue {
 
     private volatile long storeTimestamp = 0;
 
+    /**
+     * 初始化
+     *
+     * @param storePath ${ROCKET_HOME}/store/commitlog
+     * @param mappedFileSize 默认1G
+     * @param allocateMappedFileService
+     */
     public MappedFileQueue(final String storePath, int mappedFileSize,
         AllocateMappedFileService allocateMappedFileService) {
         this.storePath = storePath;
@@ -191,6 +198,13 @@ public class MappedFileQueue {
         return 0;
     }
 
+    /**
+     * 获取最后一个内存映射文件
+     *
+     * @param startOffset
+     * @param needCreate    是否需要创建
+     * @return
+     */
     public MappedFile getLastMappedFile(final long startOffset, boolean needCreate) {
         long createOffset = -1;
         MappedFile mappedFileLast = getLastMappedFile();

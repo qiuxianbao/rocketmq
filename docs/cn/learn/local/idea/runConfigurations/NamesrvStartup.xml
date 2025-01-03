@@ -5,6 +5,7 @@
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.apache.rocketmq.namesrv.NamesrvStartup" />
     <module name="rocketmq-namesrv" />
+    <option name="VM_PARAMETERS" value="-Duser.home=C:\\Idea\\a-learn\\rocketmq\\local" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="org.apache.rocketmq.namesrv.*" />

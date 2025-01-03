@@ -2,6 +2,7 @@
   <configuration default="false" name="rocketmq-console" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <module name="rocketmq-console-ng" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="org.apache.rocketmq.console.App" />
+    <option name="VM_PARAMETERS" value="-Duser.home=C:\\Idea\\a-learn\\rocketmq\\local" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

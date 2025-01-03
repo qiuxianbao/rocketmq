@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>java.nio.Buffer</OriginalElement>
+  <nodes>
+    <node x="-94.0" y="646.0">java.nio.DirectByteBufferR</node>
+    <node x="34.0" y="286.0">java.nio.HeapByteBuffer</node>
+    <node x="29.0" y="466.0">java.nio.HeapByteBufferR</node>
+    <node x="-89.0" y="526.0">java.nio.DirectByteBuffer</node>
+    <node x="-88.5" y="46.0">java.nio.Buffer</node>
+    <node x="-66.0" y="166.0">java.nio.ByteBuffer</node>
+    <node x="-8.5" y="-14.0">java.lang.Comparable</node>
+    <node x="-97.0" y="346.0">java.nio.MappedByteBuffer</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="java.nio.ByteBuffer" target="java.nio.Buffer" relationship="GENERALIZATION">
+      <point x="-33.0" y="-14.0" />
+      <point x="-33.0" y="140.0" />
+      <point x="-40.0" y="140.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.nio.ByteBuffer" target="java.lang.Comparable" relationship="REALIZATION">
+      <point x="33.0" y="-14.0" />
+      <point x="33.0" y="140.0" />
+      <point x="80.0" y="140.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.nio.HeapByteBuffer" target="java.nio.ByteBuffer" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="120.0" y="260.0" />
+      <point x="0.0" y="260.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.nio.MappedByteBuffer" target="java.nio.ByteBuffer" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.nio.DirectByteBufferR" target="java.nio.DirectByteBuffer" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.nio.DirectByteBuffer" target="java.nio.MappedByteBuffer" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.nio.HeapByteBufferR" target="java.nio.HeapByteBuffer" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.3587570621468927" showDependencies="false" x="67.00000000000011" y="340.00000000000006" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

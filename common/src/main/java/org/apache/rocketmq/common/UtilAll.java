@@ -249,6 +249,13 @@ public class UtilAll {
         return new String(hexChars);
     }
 
+    /**
+     * 将MsgId字符串还原成16个字节的字节数组，从而提取消息偏移量
+     * 可以快速通过MsgId找到消息内容
+     *
+     * @param hexString
+     * @return
+     */
     public static byte[] string2bytes(String hexString) {
         if (hexString == null || hexString.equals("")) {
             return null;
