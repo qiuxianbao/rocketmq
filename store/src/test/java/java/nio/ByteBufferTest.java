@@ -2,6 +2,11 @@ package java.nio;
 
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+
 /**
  * 字节缓冲区
  * 链接：<a href="https://juejin.cn/post/7217425505926447161">...</a>
@@ -18,6 +23,20 @@ public class ByteBufferTest {
 
 
     // TransientStorePool
+
+    // FileInputStream中就有FileChannel
+
+    // MappedFile
+
+
+    // ByteBuffer
+
+    @Test
+    public void test() throws IOException {
+        File file = new File("");
+        FileChannel channel = new RandomAccessFile(file, "rw").getChannel();
+        MappedByteBuffer map = channel.map(FileChannel.MapMode.READ_WRITE, 0, file.length());
+    }
 
 
     @Test
@@ -57,7 +76,7 @@ public class ByteBufferTest {
          */
 
         /**
-         * 在【堆】上分配一个新的字节缓冲区。说明如下：
+         * 在【堆】上分配一个新的堆缓冲区。说明如下：
          * 1. 创建出来后，position为0，并且limit会取值为capacity；
          * 2. 创建出来的实际为 HeapByteBuffer，其内部使用一个字节数组hb存储元素；
          * 3. 初始时hb中所有元素为0
@@ -80,7 +99,14 @@ public class ByteBufferTest {
 
 
         /**
-         * 在【直接内存】中分配一个新的字节缓冲区。通过一个 address字段来标识数据所在直接内存的开始地址
+         * 适应场景：
+         * 高性能 I/O 操作：如 NIO（非阻塞 I/O）中的直接缓冲区（Direct Buffer），用于提高文件读写、网络传输等操作的性能。
+         * 大数据处理：处理大量数据时，将数据存储在堆外内存可以避免频繁的 GC 活动，提升系统整体性能。
+         * 缓存：某些缓存框架（如 Redis 客户端、Netty 缓冲区）使用堆外内存来存储临时数据，以减少对堆内存的压力。
+         * 分布式系统：在分布式消息队列（如 RocketMQ）、数据库等系统中，堆外内存用于高效地管理和传递消息或数据
+         *
+         * 堆外内存（Off-Heap Memory）是指不在 Java 虚拟机（JVM）的堆内存（Heap Memory）中分配的内存。它直接使用操作系统提供的本地内存，因此不受 JVM 垃圾回收机制的管理
+         * 在【堆外内存】中分配一个直接缓冲区。通过一个 address字段来标识数据所在直接内存的开始地址
          * 说明如下：
          * 1. 创建出来后，position为0，并且limit会取值为capacity；
          * 2. 创建出来的实际为DirectByteBuffer，是基于操作系统创建的内存区域作为缓冲区；
@@ -92,7 +118,7 @@ public class ByteBufferTest {
         ByteBuffer buffer2 = ByteBuffer.allocateDirect(1024);
 
         /**
-         * 在已有的ByteBuffer上创建一个视图，得到一个新的ByteBuffer
+         * 创建共享缓冲区，与原先的ByteBuffer共享内存
          * 两个ByteBuffer的position，limit，capacity和mark都是独立的，但是底层存储数据的内存区域是一样的，
          * 那么相应的，对其中任何一个ByteBuffer做更改，会影响到另外一个ByteBuffer
          */

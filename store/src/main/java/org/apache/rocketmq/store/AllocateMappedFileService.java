@@ -32,6 +32,7 @@ import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.store.config.BrokerRole;
 
 /**
+ * 用于产生MappedFile
  * Create MappedFile in advance
  */
 public class AllocateMappedFileService extends ServiceThread {
@@ -173,6 +174,7 @@ public class AllocateMappedFileService extends ServiceThread {
                         mappedFile = new MappedFile(req.getFilePath(), req.getFileSize(), messageStore.getTransientStorePool());
                     }
                 } else {
+                    // 创建mappedFile
                     mappedFile = new MappedFile(req.getFilePath(), req.getFileSize());
                 }
 

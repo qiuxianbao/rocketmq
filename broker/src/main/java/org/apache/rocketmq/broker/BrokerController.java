@@ -240,6 +240,7 @@ public class BrokerController {
             }
         }
 
+        // 加载commitLog
         result = result && this.messageStore.load();
 
         if (result) {

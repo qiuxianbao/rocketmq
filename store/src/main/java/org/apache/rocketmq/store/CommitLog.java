@@ -54,6 +54,13 @@ import org.apache.rocketmq.store.schedule.ScheduleMessageService;
  * 00000000000000000000         （第1个文件的0，代表第一个文件的初始偏移量是0）
  * 00000000001073741824         1073741824 = 1024 * 1024 * 1024（第2个文件的1073741824，代表该文件的第一条消息的物理偏移量为1073741824，这个根据物理偏移量可以快速定位到消息）
  *
+ *
+ * CommitLog持有一个MappedFileQueue，
+ * MappedFileQueue持有CopyOnWriteArrayList<MappedFile> mappedFiles
+ * @see MappedFileQueue
+ * MappedFile是对File的封装
+ * @see MappedFile
+ *
  * Store all metadata downtime for recovery, data protection reliability
  */
 public class CommitLog {
@@ -64,7 +71,7 @@ public class CommitLog {
     protected final static int BLANK_MAGIC_CODE = -875286124;
 
     /**
-     * 可以看做是${ROCKET_HOME}/store/commitlog文件夹
+     * 可以看做是${ROCKET_HOME}/store/commitlog/文件夹
      * 而mappedFiles中的MappedFile则对应该文件夹下的一个个文件
      *
      * @see org.apache.rocketmq.store.MappedFileQueue#mappedFiles
@@ -883,7 +890,7 @@ public class CommitLog {
             // 5.设置消息存储时间
             msg.setStoreTimestamp(beginLockTimestamp);
 
-            // null == mappedFile 表明 ${ROCKET_HOME}/store/commitlog 下不存在任何文件，说明是第一次发送，用偏移量0创建第一个commitlog
+            // null == mappedFile 表明 ${ROCKET_HOME}/store/commitlog/ 下不存在任何文件，说明是第一次发送，用偏移量0创建第一个commitlog
             if (null == mappedFile || mappedFile.isFull()) {
                 mappedFile = this.mappedFileQueue.getLastMappedFile(0); // Mark: NewFile may be cause noise
             }
@@ -1684,7 +1691,7 @@ public class CommitLog {
                  * @see CommitLog#putMessage(MessageExtBrokerInner) switch case
                  *
                  * 大端字节序：
-                 * 可以看出每个CommitLog文件最少会空闲8个字节，
+                 * 》》》》》》》可以看出每个CommitLog文件最少会空闲8个字节，
                  * 高4个字节用来存储当前文件的剩余空间
                  * 低4个字节用来存储魔数
                  */

@@ -18,6 +18,7 @@ package org.apache.rocketmq.store;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -29,21 +30,55 @@ import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 
+/**
+ * MappedFile管理容器
+ * 持有CopyOnWriteArrayList<MappedFile> mappedFiles
+ */
 public class MappedFileQueue {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
     private static final InternalLogger LOG_ERROR = InternalLoggerFactory.getLogger(LoggerName.STORE_ERROR_LOGGER_NAME);
 
     private static final int DELETE_FILES_BATCH_MAX = 10;
 
+    /**
+     * 存储目录
+     */
     private final String storePath;
 
+    /**
+     * 单个文件的存储大小
+     */
     private final int mappedFileSize;
 
+    /**
+     * MappedFile文件集合
+     * 技巧：写操作较少
+     *
+     * 1、线程安全
+     * 写时复制，当对列表进行写操作（如添加、删除元素）时，CopyOnWriteArrayList 会创建一个新的底层数组副本，并在新数组上进行修改，最后将引用指向新的数组。读操作则始终在旧数组上进行，因此不会受到写操作的影响
+     * 无锁读取
+     *
+     * 2、写操作较少
+     * 写操作（如添加新的 MappedFile 或移除旧的 MappedFile）相对较少。通常只有在文件滚动或清理时才会发生写操作
+     *
+     */
     private final CopyOnWriteArrayList<MappedFile> mappedFiles = new CopyOnWriteArrayList<MappedFile>();
 
+    /**
+     * 创建MappedFile服务线程
+     */
     private final AllocateMappedFileService allocateMappedFileService;
 
+    /**
+     * 当前刷盘指针
+     * 表示该指针之前的所有数据全部持久化到磁盘
+     */
     private long flushedWhere = 0;
+
+    /**
+     * 当前数据提交指针，
+     * 内存中ByteBuffer当前的写指针，该值大于等于flushedWhere
+     */
     private long committedWhere = 0;
 
     private volatile long storeTimestamp = 0;
@@ -51,7 +86,7 @@ public class MappedFileQueue {
     /**
      * 初始化
      *
-     * @param storePath ${ROCKET_HOME}/store/commitlog
+     * @param storePath ${ROCKET_HOME}/store/commitlog/
      * @param mappedFileSize 默认1G
      * @param allocateMappedFileService
      */
@@ -81,6 +116,12 @@ public class MappedFileQueue {
         }
     }
 
+    /**
+     * 根据消息存储时间戳来查找MappedFile
+     *
+     * @param timestamp 消息存储时间戳
+     * @return
+     */
     public MappedFile getMappedFileByTime(final long timestamp) {
         Object[] mfs = this.copyMappedFiles(0);
 
@@ -89,11 +130,14 @@ public class MappedFileQueue {
 
         for (int i = 0; i < mfs.length; i++) {
             MappedFile mappedFile = (MappedFile) mfs[i];
+            // 返回第一个
+            // 文件的最后修改时间大于等于给定时间戳
             if (mappedFile.getLastModifiedTimestamp() >= timestamp) {
                 return mappedFile;
             }
         }
 
+        // 最后一个
         return (MappedFile) mfs[mfs.length - 1];
     }
 
@@ -104,6 +148,7 @@ public class MappedFileQueue {
             return null;
         }
 
+        // 技巧：CopyOnWriteArrayList.toArray()复制
         mfs = this.mappedFiles.toArray();
         return mfs;
     }
@@ -152,6 +197,7 @@ public class MappedFileQueue {
     }
 
     public boolean load() {
+        // ${ROCKET_HOME}/store/commitlog/
         File dir = new File(this.storePath);
         File[] files = dir.listFiles();
         if (files != null) {
@@ -299,10 +345,15 @@ public class MappedFileQueue {
         return true;
     }
 
+    /**
+     * 获取存储文件最小偏移量
+     * @return
+     */
     public long getMinOffset() {
 
         if (!this.mappedFiles.isEmpty()) {
             try {
+                // 不是直接返回0，因为文件可能会被删除
                 return this.mappedFiles.get(0).getFileFromOffset();
             } catch (IndexOutOfBoundsException e) {
                 //continue;
@@ -313,17 +364,31 @@ public class MappedFileQueue {
         return -1;
     }
 
+    /**
+     * 获取存储文件最大偏移量
+     * @return
+     */
     public long getMaxOffset() {
         MappedFile mappedFile = getLastMappedFile();
         if (mappedFile != null) {
+            /**
+             * 文件名 + mappedFile文件当前的写指针
+             * 可能写不满
+             * @see CommitLog.DefaultAppendMessageCallback#doAppend(long, ByteBuffer, int, MessageExtBrokerInner)
+             */
             return mappedFile.getFileFromOffset() + mappedFile.getReadPosition();
         }
         return 0;
     }
 
+    /**
+     * 获取存储文件当前的写指针
+     * @return
+     */
     public long getMaxWrotePosition() {
         MappedFile mappedFile = getLastMappedFile();
         if (mappedFile != null) {
+            // 文件名 + mappedFile文件当前的写指针
             return mappedFile.getFileFromOffset() + mappedFile.getWrotePosition();
         }
         return 0;
@@ -467,10 +532,12 @@ public class MappedFileQueue {
     }
 
     /**
+     * 根据消息偏移量查找MappedFile
+     *
      * Finds a mapped file by offset.
      *
-     * @param offset Offset.
-     * @param returnFirstOnNotFound If the mapped file is not found, then return the first one.
+     * @param offset Offset.    消息偏移量
+     * @param returnFirstOnNotFound If the mapped file is not found, then return the first one. 如果找不到是否返回第一个
      * @return Mapped file or null (when not found and returnFirstOnNotFound is <code>false</code>).
      */
     public MappedFile findMappedFileByOffset(final long offset, final boolean returnFirstOnNotFound) {
@@ -478,6 +545,7 @@ public class MappedFileQueue {
             MappedFile firstMappedFile = this.getFirstMappedFile();
             MappedFile lastMappedFile = this.getLastMappedFile();
             if (firstMappedFile != null && lastMappedFile != null) {
+                // 没有匹配到
                 if (offset < firstMappedFile.getFileFromOffset() || offset >= lastMappedFile.getFileFromOffset() + this.mappedFileSize) {
                     LOG_ERROR.warn("Offset not matched. Request offset: {}, firstOffset: {}, lastOffset: {}, mappedFileSize: {}, mappedFiles count: {}",
                         offset,
@@ -486,6 +554,18 @@ public class MappedFileQueue {
                         this.mappedFileSize,
                         this.mappedFiles.size());
                 } else {
+                    /**
+                     * 找到是第几个文件
+                     * 说明：RockMQ定时删除存储文件，在某一个时刻，前面的文件可能会被删除，所以要进行计算
+                     *
+                     * 比如：offset=5，每个文件容量是2
+                     * 文件名   文件内容
+                     * 0        12（被删除）
+                     * 3        12
+                     * 5
+                     *
+                     * 5/2 - 3/2 = 1
+                     */
                     int index = (int) ((offset / this.mappedFileSize) - (firstMappedFile.getFileFromOffset() / this.mappedFileSize));
                     MappedFile targetFile = null;
                     try {
@@ -493,6 +573,7 @@ public class MappedFileQueue {
                     } catch (Exception ignored) {
                     }
 
+                    // 找到了
                     if (targetFile != null && offset >= targetFile.getFileFromOffset()
                         && offset < targetFile.getFileFromOffset() + this.mappedFileSize) {
                         return targetFile;

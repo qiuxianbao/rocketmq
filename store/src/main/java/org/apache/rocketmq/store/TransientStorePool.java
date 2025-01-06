@@ -30,14 +30,34 @@ import sun.nio.ch.DirectBuffer;
 
 /**
  * 内存池
+ * RocketMQ单独创建一个内存缓冲池，用来临时存储数据，
+ * 数据先写入该内存映射中，然后由Commit线程定时将数据从该内存复制到与目的物理文件对应的内存映射中
+ *
+ *
+ * RocketMQ引入该机制的目的是：提供一种内存锁定，将当前堆外内存一直锁定在内存中，避免被进程将内存交换到磁盘
  */
 public class TransientStorePool {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
-    // 5
+    /**
+     * availableBuffers的个数
+     * 默认是5
+     *
+     * 可以通过broker中配置文件中设置 transientStorePoolSize
+     */
     private final int poolSize;
-    // 1G
+
+    /**
+     * 每个ByteBuffer的大小
+     * 默认为mappedFileSizeCommitLog，默认为1G
+     * 说明TransientStorePool是为commitlog文件服务
+     */
     private final int fileSize;
+
+    /**
+     * 双端队列
+     * ByteBuffer的容器
+     */
     private final Deque<ByteBuffer> availableBuffers;
     private final MessageStoreConfig storeConfig;
 
@@ -52,6 +72,8 @@ public class TransientStorePool {
      * It's a heavy init method.
      */
     public void init() {
+
+        // 创建堆外内存
         for (int i = 0; i < poolSize; i++) {
             // DirectByteBuffer(堆外内存) + PageCache的两层架构方式，这样子可以实现读写消息分离，
             // 写入消息时候写到的是 DirectByteBuffer——堆外内存中,
@@ -63,6 +85,9 @@ public class TransientStorePool {
             // 获取其内存地址，然后使用LibC.INSTANCE.mlock()函数将这些内存地址锁定在内存中，以确保它们不会被交换到磁盘上。
             final long address = ((DirectBuffer) byteBuffer).address();
             Pointer pointer = new Pointer(address);
+
+            // Java Native Access 本地库
+            // 技巧：利用com.sun.jna.Library类库将该批内存锁定，避免被置换到交换区，提高存储性能
             LibC.INSTANCE.mlock(pointer, new NativeLong(fileSize));
             // 将这些ByteBuffer对象添加到availableBuffers队列中供后续使用
             availableBuffers.offer(byteBuffer);
@@ -77,7 +102,10 @@ public class TransientStorePool {
         }
     }
 
-    // commit之后就可以重新利用
+    /**
+     * commit之后就可以重新利用
+     * @param byteBuffer
+     */
     public void returnBuffer(ByteBuffer byteBuffer) {
         byteBuffer.position(0);
         // CommitLog file size, default is 1G

@@ -102,14 +102,33 @@ A：
 1 ~ 4 可以在同步刷盘机制下确保不丢失消息
 5 ~ 6 单点故障，如果开启异步复制，能保证只丢失少量消息
 
+### 文件存储目录
+![store](./local/images/store/store.png "文件存储目录")
+* commitlog，消息存储目录
+* config，运行期间的一些配置信息
+  * consumerFilter.json，主题消息过滤信息
+  * consumerOffset.json，集群消费模式消息消费进度
+  * delayOffset.json，延迟消息队列的拉取进度
+  * subscriptionGroup.json，消息消费组配置信息
+  * topics.json，Topic配置
+* consumeQueue，消息消费队列存储目录
+* index，消息索引文件存储目录
+* checkpoint，文件检测点，存储commitLog文件最后一次刷盘时间戳、consumeQueue最后一次刷盘时间、index索引文件最后一次刷盘时间戳
+* abort，如果存在abort文件表明broker非正常关闭，该文件默认启动时创建，正常退出之前删除
+* lock
+
 
 * 消息发送存储流程
 添加到buffer中、刷盘、同步
 
 
 * 存储文件组织与MappedFile（内存映射）
-？？如何提高IO的访问性能
-
+![commitlog-mappedFile](./local/images/commitlog.png "组织方式")
+```markdown
+Q: 如何提高IO的访问性能
+A: 通过使用内存映射文件。无论是CommitLog、ConsumeQueue还是IndexFile，单个文件都被设计为固定长度
+如果一个文件写满以后再创建一个新的文件，文件名为该文件第一条消息对应的全局物理偏移量。
+```
 
 * CommitLog
 ？？如何产生
