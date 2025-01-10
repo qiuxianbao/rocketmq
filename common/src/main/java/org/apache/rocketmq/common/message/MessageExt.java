@@ -32,12 +32,20 @@ public class MessageExt extends Message {
 
     private String brokerName;
 
+    /**
+     * 所属队列
+     */
     private int queueId;
 
     private int storeSize;
 
     private long queueOffset;
     private int sysFlag;
+
+    /**
+     * 消息生产者调用消息发送API的时间戳
+     * @see org.apache.rocketmq.store.CommitLog#calMsgLength(int, int, int, int)
+     */
     private long bornTimestamp;
     private SocketAddress bornHost;
 

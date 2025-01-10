@@ -39,6 +39,8 @@ public class Printer {
                 .append("; writerIndex: ").append(byteBuf.writerIndex())
                 .append("; capacity: ").append(byteBuf.capacity())
                 .append("; maxCapacity: ").append(byteBuf.maxCapacity())
+                .append(StringUtil.NEWLINE)
+                .append("content is: ").append(new String(byteBuf.array()))
                 .append(StringUtil.NEWLINE);
 
         // 将 ByteBuf 内容以十六进制格式追加到 StringBuilder

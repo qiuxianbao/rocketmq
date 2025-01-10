@@ -138,6 +138,7 @@ public class BrokerStartup {
                     configFile = file;
                     InputStream in = new BufferedInputStream(new FileInputStream(file));
                     properties = new Properties();
+                    // 技巧：把流转化成 properties
                     properties.load(in);
 
                     properties2SystemEnv(properties);

@@ -27,6 +27,11 @@
             <version>4.1.66.Final</version>
         </dependency>
 
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

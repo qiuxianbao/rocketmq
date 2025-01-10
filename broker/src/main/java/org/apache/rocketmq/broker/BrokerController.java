@@ -148,18 +148,26 @@ public class BrokerController {
         final NettyClientConfig nettyClientConfig,
         final MessageStoreConfig messageStoreConfig
     ) {
+
+        // DefaultMessageStore的入参之一，消息存储的配置
         this.brokerConfig = brokerConfig;
         this.nettyServerConfig = nettyServerConfig;
         this.nettyClientConfig = nettyClientConfig;
-        // 消息存储的配置
+
+        // DefaultMessageStore的入参，消息存储的配置
         this.messageStoreConfig = messageStoreConfig;
+
         this.consumerOffsetManager = new ConsumerOffsetManager(this);
+
         // 主题
         // 会添加默认Topic
         this.topicConfigManager = new TopicConfigManager(this);
         this.pullMessageProcessor = new PullMessageProcessor(this);
         this.pullRequestHoldService = new PullRequestHoldService(this);
+
+        // DefaultMessageStore的入参之一
         this.messageArrivingListener = new NotifyMessageArrivingListener(this.pullRequestHoldService);
+
         this.consumerIdsChangeListener = new DefaultConsumerIdsChangeListener(this);
         this.consumerManager = new ConsumerManager(this.consumerIdsChangeListener);
         this.consumerFilterManager = new ConsumerFilterManager(this);
@@ -181,6 +189,7 @@ public class BrokerController {
         this.heartbeatThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getHeartbeatThreadPoolQueueCapacity());
         this.endTransactionThreadPoolQueue = new LinkedBlockingQueue<Runnable>(this.brokerConfig.getEndTransactionPoolQueueCapacity());
 
+        // DefaultMessageStore的入参之一
         this.brokerStatsManager = new BrokerStatsManager(this.brokerConfig.getBrokerClusterName());
         this.setStoreHost(new InetSocketAddress(this.getBrokerConfig().getBrokerIP1(), this.getNettyServerConfig().getListenPort()));
 
@@ -212,8 +221,15 @@ public class BrokerController {
      * 初始化操作
      */
     public boolean initialize() throws CloneNotSupportedException {
-        // 加载topic.json中的路由信息
-        // 默认存储在 ${ROCKETMQ_HOME}/store/config/topic.json
+
+        /**
+         * 1.加载topic.json中的路由信息，并输出
+         * 默认存储在 ${ROCKETMQ_HOME}/store/config/topic.json
+         *
+         * 初始化
+         * @see org.apache.rocketmq.broker.topic.TopicConfigManager#topicConfigTable
+         * @see org.apache.rocketmq.broker.topic.TopicConfigManager#dataVersion
+         */
         boolean result = this.topicConfigManager.load();
 
         result = result && this.consumerOffsetManager.load();
@@ -222,9 +238,12 @@ public class BrokerController {
 
         if (result) {
             try {
+
+                // 创建消息存储实例
                 this.messageStore =
                     new DefaultMessageStore(this.messageStoreConfig, this.brokerStatsManager, this.messageArrivingListener,
                         this.brokerConfig);
+
                 if (messageStoreConfig.isEnableDLegerCommitLog()) {
                     DLedgerRoleChangeHandler roleChangeHandler = new DLedgerRoleChangeHandler(this, (DefaultMessageStore) messageStore);
                     ((DLedgerCommitLog)((DefaultMessageStore) messageStore).getCommitLog()).getdLedgerServer().getdLedgerLeaderElector().addRoleChangeHandler(roleChangeHandler);
@@ -234,6 +253,8 @@ public class BrokerController {
                 MessageStorePluginContext context = new MessageStorePluginContext(messageStoreConfig, brokerStatsManager, messageArrivingListener, brokerConfig);
                 this.messageStore = MessageStoreFactory.build(context, this.messageStore);
                 this.messageStore.getDispatcherList().addFirst(new CommitLogDispatcherCalcBitMap(this.brokerConfig, this.consumerFilterManager));
+
+
             } catch (IOException e) {
                 result = false;
                 log.error("Failed to initialize", e);

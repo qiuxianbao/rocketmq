@@ -36,6 +36,7 @@ public abstract class ConfigManager {
                 return this.loadBak();
             } else {
                 // 加载配置文件
+                // 初始化topicConfigTable，dataVersion
                 this.decode(jsonString);
                 log.info("load " + fileName + " OK");
                 return true;

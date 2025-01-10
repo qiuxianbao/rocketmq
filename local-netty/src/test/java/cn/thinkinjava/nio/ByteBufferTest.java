@@ -3,7 +3,6 @@ package cn.thinkinjava.nio;
 import cn.thinkinjava.nio.utils.Printer;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -20,22 +19,6 @@ import java.nio.ByteBuffer;
  * @date 2024/04/12
  */
 public class ByteBufferTest {
-
-
-
-    @Test
-    public void test() throws IOException {
-        // TransientStorePool
-
-        // FileInputStream中就有FileChannel
-
-        // MappedFile
-
-        // File file = new File("");
-        // FileChannel channel = new RandomAccessFile(file, "rw").getChannel();
-        // MappedByteBuffer map = channel.map(FileChannel.MapMode.READ_WRITE, 0, file.length());
-    }
-
 
     /**
      * ByteBuffer操作
@@ -90,10 +73,21 @@ public class ByteBufferTest {
         //  Printer.print(buffer);
 
         // 重置，主要就是将位置索引position重新设置到mark标记的位置
+        // buffer.mark();
         //  buffer.reset();
 
         // 读切换成写模式
         //  buffer.clear();
+
+        // compact
+        // 主要作用是将缓冲区中尚未读取的字节（即位置从 position 到 limit 之间的字节）移动到缓冲区的起始位置，
+        // 然后将 position 设置为写模式下未读字节数的位置，limit 设置为缓冲区容量。这个方法通常用于处理非直接缓冲区，并且在读写操作之间切换时非常有用
+        buffer = ByteBuffer.allocate(10);
+        buffer.put("Hello".getBytes()); // 写入 "Hello"
+        buffer.flip(); // 切换到读模式
+        buffer.get(new byte[2]); // 读取前两个字节 "He"
+        buffer.compact(); // 将剩余的 "llo" 移动到缓冲区开头，并准备写入更多数据
+        Printer.print(buffer);
 
     }
 

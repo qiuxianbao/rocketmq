@@ -181,7 +181,7 @@ public class DefaultMessageStore implements MessageStore {
         this.brokerConfig = brokerConfig;
         this.messageStoreConfig = messageStoreConfig;
         this.brokerStatsManager = brokerStatsManager;
-        //
+        // 创建用于产生MappedFile的服务
         this.allocateMappedFileService = new AllocateMappedFileService(this);
         if (messageStoreConfig.isEnableDLegerCommitLog()) {
             this.commitLog = new DLedgerCommitLog(this);
@@ -204,9 +204,10 @@ public class DefaultMessageStore implements MessageStore {
 
         this.scheduleMessageService = new ScheduleMessageService(this);
 
+        // 创建内存池
         this.transientStorePool = new TransientStorePool(messageStoreConfig);
-
-        // 内存池初始化
+        // 内存池初始化, 堆外内存
+        // 默认false
         if (messageStoreConfig.isTransientStorePoolEnable()) {
             this.transientStorePool.init();
         }
@@ -219,6 +220,18 @@ public class DefaultMessageStore implements MessageStore {
         this.dispatcherList.addLast(new CommitLogDispatcherBuildConsumeQueue());
         this.dispatcherList.addLast(new CommitLogDispatcherBuildIndex());
 
+        /**
+         * 创建lock文件
+         *
+         * Q：rocketmq为什么使用lock文件的方式？
+         * A：RocketMQ 使用 lock 文件的方式主要是为了确保在分布式环境下，同一时刻只有一个消费者实例能够消费某个队列的消息。
+         * 具体来说，使用 lock 文件有以下几个原因：
+         * 1、防止重复消费：通过锁定机制，可以避免多个消费者实例同时消费同一个消息队列中的消息，从而防止消息的重复消费。
+         * 2、资源独占：确保对共享资源（如消息队列）的独占访问，避免并发冲突。
+         * 3、简化实现：相比于其他复杂的分布式锁实现（如基于 ZooKeeper 或 Redis 的分布式锁），文件锁的实现相对简单，性能开销也较小。
+         * 需要注意的是，RocketMQ 的 lock 文件机制主要应用于消费者端，在生产者端并没有类似的锁定机制，因为生产者发送消息时并不需要严格的顺序和独占性
+         *
+         */
         File file = new File(StorePathConfigHelper.getLockFile(messageStoreConfig.getStorePathRootDir()));
         MappedFile.ensureDirOK(file.getParent());
         lockFile = new RandomAccessFile(file, "rw");
@@ -281,6 +294,7 @@ public class DefaultMessageStore implements MessageStore {
      */
     public void start() throws Exception {
 
+        // 文件锁
         lock = lockFile.getChannel().tryLock(0, 1, false);
         if (lock == null || lock.isShared() || !lock.isValid()) {
             throw new RuntimeException("Lock failed,MQ already started");

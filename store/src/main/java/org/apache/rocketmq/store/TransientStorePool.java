@@ -84,6 +84,8 @@ public class TransientStorePool {
             ByteBuffer byteBuffer = ByteBuffer.allocateDirect(fileSize);
             // 获取其内存地址，然后使用LibC.INSTANCE.mlock()函数将这些内存地址锁定在内存中，以确保它们不会被交换到磁盘上。
             final long address = ((DirectBuffer) byteBuffer).address();
+
+            // net.java.dev.jna 库
             Pointer pointer = new Pointer(address);
 
             // Java Native Access 本地库
