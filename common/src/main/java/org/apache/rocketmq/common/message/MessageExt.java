@@ -21,8 +21,12 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+
+import io.netty.channel.ChannelHandlerContext;
 import org.apache.rocketmq.common.TopicFilterType;
+import org.apache.rocketmq.common.protocol.header.SendMessageRequestHeader;
 import org.apache.rocketmq.common.sysflag.MessageSysFlag;
+import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
 /**
  * 消息扩展实体
@@ -50,7 +54,13 @@ public class MessageExt extends Message {
     private SocketAddress bornHost;
 
     private long storeTimestamp;
+
+    /**
+     * IP + 端口号
+     * @see org.apache.rocketmq.broker.processor.AbstractSendMessageProcessor#AbstractSendMessageProcessor(org.apache.rocketmq.broker.BrokerController)
+     */
     private SocketAddress storeHost;
+
     // 该 msgId 存放的是 offsetMsgId
     private String msgId;
     private long commitLogOffset;
@@ -80,6 +90,12 @@ public class MessageExt extends Message {
         return TopicFilterType.SINGLE_TAG;
     }
 
+    /**
+     * 将socketAddress 转换成 ByteBuffer
+     * @param socketAddress
+     * @param byteBuffer
+     * @return
+     */
     public static ByteBuffer socketAddress2ByteBuffer(final SocketAddress socketAddress, final ByteBuffer byteBuffer) {
         InetSocketAddress inetSocketAddress = (InetSocketAddress) socketAddress;
         InetAddress address = inetSocketAddress.getAddress();
@@ -117,6 +133,11 @@ public class MessageExt extends Message {
         return socketAddress2ByteBuffer(this.storeHost);
     }
 
+    /**
+     * 8个字节
+     * @param byteBuffer
+     * @return
+     */
     public ByteBuffer getStoreHostBytes(ByteBuffer byteBuffer) {
         return socketAddress2ByteBuffer(this.storeHost, byteBuffer);
     }

@@ -17,7 +17,7 @@
 package org.apache.rocketmq.common.sysflag;
 
 /**
- *
+ * 消息标识
  */
 public class MessageSysFlag {
     public final static int COMPRESSED_FLAG = 0x1;

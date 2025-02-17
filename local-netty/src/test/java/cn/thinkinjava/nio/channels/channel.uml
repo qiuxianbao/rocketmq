@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>java.nio.channels.Channel</OriginalElement>
+  <nodes>
+    <node x="145.5" y="566.0">java.nio.channels.DatagramChannel</node>
+    <node x="103.0" y="226.0">java.nio.channels.Channel</node>
+    <node x="-109.5" y="406.0">java.nio.channels.ReadableByteChannel</node>
+    <node x="189.5" y="706.0">sun.nio.ch.DatagramChannelImpl</node>
+    <node x="79.0" y="-14.0">java.lang.AutoCloseable</node>
+    <node x="392.0" y="406.0">java.nio.channels.ServerSocketChannel</node>
+    <node x="34.0" y="346.0">java.nio.channels.WritableByteChannel</node>
+    <node x="97.0" y="106.0">java.io.Closeable</node>
+    <node x="-86.5" y="706.0">sun.nio.ch.FileChannelImpl</node>
+    <node x="-70.5" y="566.0">java.nio.channels.FileChannel</node>
+    <node x="376.0" y="566.0">sun.nio.ch.ServerSocketChannelImpl</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="java.nio.channels.WritableByteChannel" target="java.nio.channels.Channel" relationship="INTERFACE_GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="140.0" y="280.0" />
+      <point x="131.5" y="280.0" />
+      <point x="-28.5" y="14.0" />
+    </edge>
+    <edge source="java.nio.channels.FileChannel" target="java.nio.channels.Channel" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="520.0" />
+      <point x="280.0" y="520.0" />
+      <point x="280.0" y="380.0" />
+      <point x="360.0" y="380.0" />
+      <point x="360.0" y="280.0" />
+      <point x="188.5" y="280.0" />
+      <point x="28.5" y="14.0" />
+    </edge>
+    <edge source="java.io.Closeable" target="java.lang.AutoCloseable" relationship="INTERFACE_GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.nio.channels.DatagramChannel" target="java.nio.channels.Channel" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="240.0" y="540.0" />
+      <point x="320.0" y="540.0" />
+      <point x="320.0" y="380.0" />
+      <point x="360.0" y="380.0" />
+      <point x="360.0" y="280.0" />
+      <point x="188.5" y="280.0" />
+      <point x="28.5" y="14.0" />
+    </edge>
+    <edge source="java.nio.channels.ReadableByteChannel" target="java.nio.channels.Channel" relationship="INTERFACE_GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="320.0" />
+      <point x="140.0" y="320.0" />
+      <point x="140.0" y="280.0" />
+      <point x="131.5" y="280.0" />
+      <point x="-28.5" y="14.0" />
+    </edge>
+    <edge source="java.nio.channels.FileChannel" target="java.nio.channels.ReadableByteChannel" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="sun.nio.ch.ServerSocketChannelImpl" target="java.nio.channels.ServerSocketChannel" relationship="GENERALIZATION">
+      <point x="-62.0" y="-14.0" />
+      <point x="438.0" y="540.0" />
+      <point x="500.0" y="540.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.nio.channels.ServerSocketChannel" target="java.nio.channels.Channel" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="500.0" y="380.0" />
+      <point x="360.0" y="380.0" />
+      <point x="360.0" y="280.0" />
+      <point x="188.5" y="280.0" />
+      <point x="28.5" y="14.0" />
+    </edge>
+    <edge source="java.nio.channels.FileChannel" target="java.nio.channels.WritableByteChannel" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="500.0" />
+      <point x="140.0" y="500.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="sun.nio.ch.FileChannelImpl" target="java.nio.channels.FileChannel" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="sun.nio.ch.ServerSocketChannelImpl" target="java.nio.channels.Channel" relationship="REALIZATION">
+      <point x="62.0" y="-14.0" />
+      <point x="562.0" y="540.0" />
+      <point x="640.0" y="540.0" />
+      <point x="640.0" y="380.0" />
+      <point x="360.0" y="380.0" />
+      <point x="360.0" y="280.0" />
+      <point x="188.5" y="280.0" />
+      <point x="28.5" y="14.0" />
+    </edge>
+    <edge source="sun.nio.ch.DatagramChannelImpl" target="java.nio.channels.Channel" relationship="REALIZATION">
+      <point x="55.25" y="-14.0" />
+      <point x="355.25" y="680.0" />
+      <point x="360.0" y="680.0" />
+      <point x="360.0" y="280.0" />
+      <point x="188.5" y="280.0" />
+      <point x="28.5" y="14.0" />
+    </edge>
+    <edge source="java.nio.channels.Channel" target="java.io.Closeable" relationship="INTERFACE_GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.nio.channels.DatagramChannel" target="java.nio.channels.WritableByteChannel" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="240.0" y="460.0" />
+      <point x="140.0" y="460.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="java.nio.channels.DatagramChannel" target="java.nio.channels.ReadableByteChannel" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="240.0" y="480.0" />
+      <point x="0.0" y="480.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="sun.nio.ch.DatagramChannelImpl" target="java.nio.channels.DatagramChannel" relationship="GENERALIZATION">
+      <point x="-55.25" y="-14.0" />
+      <point x="244.75" y="680.0" />
+      <point x="240.0" y="680.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.2395833333333333" showDependencies="false" x="275.0" y="370.0" />
+  <SelectedNodes>
+    <node>java.nio.channels.Channel</node>
+  </SelectedNodes>
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

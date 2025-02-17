@@ -106,7 +106,11 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             case RequestCode.CONSUMER_SEND_MSG_BACK:
                 return this.asyncConsumerSendMsgBack(ctx, request);
             default:
-                // 解析request header
+                /**
+                 * 解析request header
+                 * request header的构建过程如下：
+                 * @see org.apache.rocketmq.client.impl.producer.DefaultMQProducerImpl#sendKernelImpl
+                 */
                 SendMessageRequestHeader requestHeader = parseRequestHeader(request);
                 if (requestHeader == null) {
                     return CompletableFuture.completedFuture(null);
@@ -296,7 +300,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             queueIdInt = randomQueueId(topicConfig.getWriteQueueNums());
         }
 
-        // 将request转化为 MessageExtBrokerInner
+        // 将request转化为 内部对象 MessageExtBrokerInner
         MessageExtBrokerInner msgInner = new MessageExtBrokerInner();
         msgInner.setTopic(requestHeader.getTopic());
         msgInner.setQueueId(queueIdInt);

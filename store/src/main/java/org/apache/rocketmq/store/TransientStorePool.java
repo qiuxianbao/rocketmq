@@ -33,8 +33,7 @@ import sun.nio.ch.DirectBuffer;
  * RocketMQ单独创建一个内存缓冲池，用来临时存储数据，
  * 数据先写入该内存映射中，然后由Commit线程定时将数据从该内存复制到与目的物理文件对应的内存映射中
  *
- *
- * RocketMQ引入该机制的目的是：提供一种内存锁定，将当前堆外内存一直锁定在内存中，避免被进程将内存交换到磁盘
+ * RocketMQ引入该机制的目的是：提供一种内存锁定，将当前堆外内存一直锁定在内存中，【避免被进程将内存交换到磁盘】
  */
 public class TransientStorePool {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
@@ -69,6 +68,9 @@ public class TransientStorePool {
     }
 
     /**
+     * 创建poolSize个对外内存
+     * 并利用 com.sun.jna 库锁定内存，避免被置换到交换区，提高存储性能
+     *
      * It's a heavy init method.
      */
     public void init() {

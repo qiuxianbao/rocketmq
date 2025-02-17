@@ -30,6 +30,9 @@ import java.util.Map;
 import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.sysflag.MessageSysFlag;
 
+/**
+ * Message 解码器
+ */
 public class MessageDecoder {
 //    public final static int MSG_ID_LENGTH = 8 + 8;
 
@@ -63,7 +66,7 @@ public class MessageDecoder {
      *
      * @param input 用来存放 offsetMsgId 的字节缓存区
      * @param addr  当前 Broker 服务器的 IP 地址与端口号，即通过解析 offsetMsgId 从而得到消息服务器的地址信息。
-     * @param offset 消息的物理偏移量
+     * @param offset 消息的物理偏移量       8个字节
      * @return
      */
     public static String createMessageId(final ByteBuffer input, final ByteBuffer addr, final long offset) {

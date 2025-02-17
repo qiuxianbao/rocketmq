@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>io.netty.buffer.ByteBuf</OriginalElement>
+  <nodes>
+    <node x="-28.5" y="-14.0">java.lang.Comparable</node>
+    <node x="174.5" y="466.0">io.netty.buffer.UnreleasableByteBuf</node>
+    <node x="210.0" y="286.0">io.netty.buffer.WrappedByteBuf</node>
+    <node x="-115.5" y="166.0">io.netty.buffer.ByteBuf</node>
+    <node x="-148.5" y="346.0">io.netty.buffer.AbstractByteBuf</node>
+    <node x="-160.0" y="526.0">io.netty.buffer.AbstractReferenceCountedByteBuf</node>
+    <node x="100.0" y="346.0">io.netty.buffer.EmptyByteBuf</node>
+    <node x="-156.5" y="46.0">io.netty.util.ReferenceCounted</node>
+    <node x="-31.0" y="286.0">io.netty.buffer.SwappedByteBuf</node>
+    <node x="-116.0" y="706.0">io.netty.buffer.UnpooledDirectByteBuf</node>
+    <node x="41.0" y="646.0">io.netty.buffer.PooledByteBuf</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="io.netty.buffer.UnpooledDirectByteBuf" target="io.netty.buffer.AbstractReferenceCountedByteBuf" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="io.netty.buffer.PooledByteBuf" target="io.netty.buffer.AbstractReferenceCountedByteBuf" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="140.0" y="620.0" />
+      <point x="0.0" y="620.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="io.netty.buffer.SwappedByteBuf" target="io.netty.buffer.ByteBuf" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="60.0" y="260.0" />
+      <point x="-60.0" y="260.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="io.netty.buffer.WrappedByteBuf" target="io.netty.buffer.ByteBuf" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="300.0" y="260.0" />
+      <point x="-60.0" y="260.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="io.netty.buffer.ByteBuf" target="java.lang.Comparable" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="-60.0" y="140.0" />
+      <point x="60.0" y="140.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="io.netty.buffer.EmptyByteBuf" target="io.netty.buffer.ByteBuf" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="180.0" y="260.0" />
+      <point x="-60.0" y="260.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="io.netty.buffer.ByteBuf" target="io.netty.util.ReferenceCounted" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="io.netty.buffer.AbstractReferenceCountedByteBuf" target="io.netty.buffer.AbstractByteBuf" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="500.0" />
+      <point x="-60.0" y="500.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="io.netty.buffer.UnreleasableByteBuf" target="io.netty.buffer.WrappedByteBuf" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="280.0" y="440.0" />
+      <point x="300.0" y="440.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="io.netty.buffer.AbstractByteBuf" target="io.netty.buffer.ByteBuf" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.2526041666666667" showDependencies="false" x="124.99999999999994" y="370.0" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

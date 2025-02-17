@@ -34,6 +34,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * RocketMQ网络请求命令
+ *
+ * 核心内容：
+ * 1.Netty的请求指令码
+ * 2.请求头信息
+ * 3.消息体内容
  */
 public class RemotingCommand {
     public static final String SERIALIZE_TYPE_PROPERTY = "rocketmq.serialize.type";
@@ -114,7 +119,7 @@ public class RemotingCommand {
     private HashMap<String, String> extFields;
 
     /**
-     * 每个请求对应的请求头信息
+     * 请求头信息
      */
     private transient CommandCustomHeader customHeader;
 
@@ -128,6 +133,14 @@ public class RemotingCommand {
     protected RemotingCommand() {
     }
 
+    /**
+     * 将requestHeader转换成网络请求命令
+     * @see org.apache.rocketmq.common.protocol.header.SendMessageRequestHeader
+     *
+     * @param code
+     * @param customHeader
+     * @return
+     */
     public static RemotingCommand createRequestCommand(int code, CommandCustomHeader customHeader) {
         RemotingCommand cmd = new RemotingCommand();
         cmd.setCode(code);

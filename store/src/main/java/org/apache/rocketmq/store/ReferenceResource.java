@@ -44,12 +44,11 @@ public abstract class ReferenceResource {
     }
 
     /**
-     * 销毁
+     * 关闭
      * @param intervalForcibly
      */
     public void shutdown(final long intervalForcibly) {
         if (this.available) {
-            // 1.
             this.available = false;
             this.firstShutdownTimestamp = System.currentTimeMillis();
             this.release();

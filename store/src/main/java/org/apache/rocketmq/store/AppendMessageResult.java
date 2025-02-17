@@ -33,16 +33,28 @@ public class AppendMessageResult {
     // Write Bytes
     private int wroteBytes;
 
+    /**
+     * 消息ID
+     */
     // Message ID
     private String msgId;
+
+    /**
+     * 消息存储时间戳
+     */
     // Message storage timestamp
     private long storeTimestamp;
 
     /**
      * 消息消费队列逻辑偏移量
+     * 类似数组下标
      */
     // Consume queue's offset(step by one)
     private long logicsOffset;
+
+    /**
+     * 当前未使用
+     */
     private long pagecacheRT = 0;
 
     /**

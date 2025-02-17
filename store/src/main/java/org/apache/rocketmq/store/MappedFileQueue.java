@@ -42,11 +42,13 @@ public class MappedFileQueue {
 
     /**
      * 存储目录
+     * 默认是 ${ROCKET_HOME}/store/commitlog/，可以通过storePathRootDir改变
      */
     private final String storePath;
 
     /**
      * 单个文件的存储大小
+     * 默认是1G，可以通过 mappedFileSizeCommitLog 改变
      */
     private final int mappedFileSize;
 
@@ -61,6 +63,7 @@ public class MappedFileQueue {
      * 2、写操作较少
      * 写操作（如添加新的 MappedFile 或移除旧的 MappedFile）相对较少。通常只有在文件滚动或清理时才会发生写操作
      *
+     * @see MappedFileQueue#load()
      */
     private final CopyOnWriteArrayList<MappedFile> mappedFiles = new CopyOnWriteArrayList<MappedFile>();
 
@@ -212,6 +215,7 @@ public class MappedFileQueue {
                 }
 
                 try {
+                    // 构造初始化
                     MappedFile mappedFile = new MappedFile(file.getPath(), mappedFileSize);
 
                     mappedFile.setWrotePosition(this.mappedFileSize);
@@ -252,6 +256,7 @@ public class MappedFileQueue {
      * @return
      */
     public MappedFile getLastMappedFile(final long startOffset, boolean needCreate) {
+        // 文件名（物理偏移量）
         long createOffset = -1;
         MappedFile mappedFileLast = getLastMappedFile();
 
@@ -264,6 +269,7 @@ public class MappedFileQueue {
         }
 
         if (createOffset != -1 && needCreate) {
+            // ${ROCKET_HOME}/store/commitlog/
             String nextFilePath = this.storePath + File.separator + UtilAll.offset2FileName(createOffset);
             String nextNextFilePath = this.storePath + File.separator
                 + UtilAll.offset2FileName(createOffset + this.mappedFileSize);
@@ -555,7 +561,7 @@ public class MappedFileQueue {
                         this.mappedFiles.size());
                 } else {
                     /**
-                     * 找到是第几个文件
+                     * 在firstMappedFile和 lastMappedFile之间，需要找到是第几个文件
                      * 说明：RockMQ定时删除存储文件，在某一个时刻，前面的文件可能会被删除，所以要进行计算
                      *
                      * 比如：offset=5，每个文件容量是2
