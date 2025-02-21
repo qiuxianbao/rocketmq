@@ -421,6 +421,17 @@ public abstract class NettyRemotingAbstract {
         }
     }
 
+    /**
+     * 执行请求
+     *
+     * @param channel
+     * @param request
+     * @param timeoutMillis
+     * @return
+     * @throws InterruptedException
+     * @throws RemotingSendRequestException
+     * @throws RemotingTimeoutException
+     */
     public RemotingCommand invokeSyncImpl(final Channel channel, final RemotingCommand request,
         final long timeoutMillis)
         throws InterruptedException, RemotingSendRequestException, RemotingTimeoutException {
@@ -430,12 +441,30 @@ public abstract class NettyRemotingAbstract {
             final ResponseFuture responseFuture = new ResponseFuture(channel, opaque, timeoutMillis, null, null);
             this.responseTable.put(opaque, responseFuture);
             final SocketAddress addr = channel.remoteAddress();
-            // 发送消息（通道写入消息）
+
+            /**
+             * 发送消息（通道写入消息）
+             * 发送完成触发监听器
+             *
+             * 失败场景，客户端日志：
+             * 2025-02-21 09:52:38.568  INFO [bootstrap,,,] 557403 ace-cps 127.0.0.1 --- [MQClientFactoryScheduledThread] RocketmqRemoting                         : createChannel: begin to connect remote host[10.110.104.105:9876] asynchronously
+             * 2025-02-21 09:52:38.570  INFO [bootstrap,,,] 557403 ace-cps 127.0.0.1 --- [NettyClientWorkerThread_4] RocketmqRemoting                         : NETTY CLIENT PIPELINE: CONNECT  UNKNOWN => /10.110.104.105:9876
+             * 2025-02-21 09:52:38.570  INFO [bootstrap,,,] 557403 ace-cps 127.0.0.1 --- [MQClientFactoryScheduledThread] RocketmqRemoting                         : createChannel: connect remote host[10.110.104.105:9876] success, AbstractBootstrap$PendingRegistrationPromise@5197127f(success)
+             * 2025-02-21 09:52:38.571  WARN [bootstrap,,,] 557403 ace-cps 127.0.0.1 --- [NettyClientSelector_1] RocketmqRemoting                         : send a request command to channel </10.110.104.105:9876> failed.
+             * 2025-02-21 09:52:38.571  WARN [bootstrap,,,] 557403 ace-cps 127.0.0.1 --- [MQClientFactoryScheduledThread] RocketmqRemoting                         : invokeSync: send request exception, so close the channel[null]
+             * 2025-02-21 09:52:38.572  INFO [bootstrap,,,] 557403 ace-cps 127.0.0.1 --- [MQClientFactoryScheduledThread] RocketmqRemoting                         : closeChannel: begin close the channel[10.110.104.105:9876] Found: true
+             * 2025-02-21 09:52:38.572  INFO [bootstrap,,,] 557403 ace-cps 127.0.0.1 --- [MQClientFactoryScheduledThread] RocketmqRemoting                         : closeChannel: the channel[10.110.104.105:9876] was removed from channel table
+             * 2025-02-21 09:52:38.572  INFO [bootstrap,,,] 557403 ace-cps 127.0.0.1 --- [NettyClientWorkerThread_4] RocketmqRemoting                         : NETTY CLIENT PIPELINE: CLOSE 10.110.104.105:9876
+             * 2025-02-21 09:52:38.572  INFO [bootstrap,,,] 557403 ace-cps 127.0.0.1 --- [NettyClientWorkerThread_4] RocketmqRemoting                         : eventCloseChannel: the channel[null] has been removed from the channel table before
+             * 2025-02-21 09:52:38.572  INFO [bootstrap,,,] 557403 ace-cps 127.0.0.1 --- [NettyClientSelector_1] RocketmqRemoting                         : closeChannel: close the connection to remote address[10.110.104.105:9876] result: true
+             */
             channel.writeAndFlush(request).addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture f) throws Exception {
                     if (f.isSuccess()) {
+                        // 成功
                         responseFuture.setSendRequestOK(true);
+                        // 直接返回
                         return;
                     } else {
                         responseFuture.setSendRequestOK(false);
@@ -451,9 +480,11 @@ public abstract class NettyRemotingAbstract {
             RemotingCommand responseCommand = responseFuture.waitResponse(timeoutMillis);
             if (null == responseCommand) {
                 if (responseFuture.isSendRequestOK()) {
+                    // 发送超时
                     throw new RemotingTimeoutException(RemotingHelper.parseSocketAddressAddr(addr), timeoutMillis,
                         responseFuture.getCause());
                 } else {
+                    // 发送异常
                     throw new RemotingSendRequestException(RemotingHelper.parseSocketAddressAddr(addr), responseFuture.getCause());
                 }
             }

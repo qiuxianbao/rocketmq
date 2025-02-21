@@ -57,7 +57,7 @@ A：RockMQ的路由发现是非实时的，当Topic路由出现变化后，names
 * RockMQ发送普通消息有三种方式：可靠同步发送、可靠异步发送、单项发送。
 
 * 步骤
-** 查找路由
+** 查找路由 
 ** 选择队列
 ** 发送消息
 
@@ -123,6 +123,8 @@ A：
 
 * 消息发送存储流程
  ![dataflow](local/images/store/dataflow.png "消息存储设计原理")
+ ![rocketmq_design_1](../image/rocketmq_design_1.png "消息存储设计原理")
+ ![rocketmq_design_11](../image/rocketmq_design_11.png "消息存储设计原理")
 
 ```markdown
 Q: 如何进行查找实现？
@@ -164,6 +166,16 @@ Broker服务器IP + 端口号、消息发送者的IP地址
 * ConsumeQueue
 消息消费队列，消息到达commitlog文件后，将异步转发到消息消费队列中，供消息消费者消息
 每个消息主题包含多个消息消费队列，每一个消息队列有一个消息文件
+![consumequeue](local/images/store/consumequeue.png "consumequeue文件的组织方式")
+![consumequeue-item](local/images/store/consumequeue-item.png "consumequeue条目")
+
+
+？？实时更新消息消费队列与索引文件
+
+？？消息队列与索引文件恢复
+
+
+
 
 * Index
 IndexFile索引文件，主要是为了加速消息的检索性能，根据消息的属性快速从CommitLog文件中检索消息
@@ -171,15 +183,19 @@ IndexFile索引文件，主要是为了加速消息的检索性能，根据消�
 
 * checkpoint
 
+
 * 文件刷盘机制
-* 文件删除机制
+![rocketmq_design_2](../image/rocketmq_design_2.png "消息存储设计原理")
+
+* 过期文件删除机制
+
 
 
 ??发送结果中的含义
 msgId，消息ID生成器
 offsetMsgId
 queueOffset
-
+consumeQueueOffset
 queueId，选择的队列的id
 
 
@@ -203,6 +219,26 @@ queueId，选择的队列的id
 ## 主从同步
 * HA
 
+一、从节点的作用：
+1、数据冗余（主从同步）
+主节点（Master）负责接收生产者发送的消息并写入CommitLog（存储文件）
+从节点实时/异步同步主节点的数据，确保主节点宕机时，数据不会丢失
+
+2、故障转移（Failover）
+当主节点不可用时（如宕机、网络中断），从节点可以自动或手动切换为主节点，继续对外提供服务。
+
+
+二、从节点是否参与消息消费？
+1、默认情况下，消费者仅从主节点拉取消息。
+RocketMQ的消费逻辑由主节点负责，从节点不直接处理消费请求。
+这是为了避免主从数据同步延迟（如异步复制）导致消费者读到过期数据。
+
+2、特殊情况，
+如果主节点宕机且从节点切换为新的主节点，消费者会自动连接到新的主节点继续消费。
+某些定制化场景中，可以通过配置强制消费者从从节点读取数据，但需权衡数据一致性和可用性（不推荐常规使用）
+
+
+
 ## 定时消息
 只支持特定延迟级别的延时消息
 
@@ -210,11 +246,13 @@ queueId，选择的队列的id
 
 
 # 工具：mqadmin.sh
+看namesrv端注册的broker等
 
 
 
-
-
+# 参考资料
+> https://blog.csdn.net/qq_51967234/article/details/139335713
+> https://www.cnblogs.com/qdhxhz/p/11094624.html
 
 
 

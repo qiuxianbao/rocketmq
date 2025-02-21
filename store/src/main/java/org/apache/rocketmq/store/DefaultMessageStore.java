@@ -82,6 +82,9 @@ public class DefaultMessageStore implements MessageStore {
 
     /**
      * 消消费息队列
+     *
+     * 构建
+     * @see DefaultMessageStore#findConsumeQueue(String, int)
      */
     private final ConcurrentMap<String/* topic */, ConcurrentMap<Integer/* queueId */, ConsumeQueue>> consumeQueueTable;
 
@@ -115,6 +118,8 @@ public class DefaultMessageStore implements MessageStore {
     /**
      * CommitLog消息分发
      * 根据CommitLog文件构建ConsumeQueue、IndexFile文件
+     *
+     * @see ServiceThread 对线程进行了封装
      */
     private final ReputMessageService reputMessageService;
 
@@ -165,7 +170,8 @@ public class DefaultMessageStore implements MessageStore {
     private AtomicLong printTimes = new AtomicLong(0);
 
     /**
-     * CommitLog文件转发请求
+     * CommitLog文件处理完之后，实时处理消费队列和索引文件
+     * 分发器
      */
     private final LinkedList<CommitLogDispatcher> dispatcherList;
 
@@ -189,6 +195,8 @@ public class DefaultMessageStore implements MessageStore {
             // 创建CommitLog文件
             this.commitLog = new CommitLog(this);
         }
+
+        // 创建消息消费队列
         this.consumeQueueTable = new ConcurrentHashMap<>(32);
 
         this.flushConsumeQueueService = new FlushConsumeQueueService();
@@ -201,6 +209,11 @@ public class DefaultMessageStore implements MessageStore {
         } else {
             this.haService = null;
         }
+
+        /**
+         * 实时更新消息消费队列与索引文件服务
+         * @see org.apache.rocketmq.store.DefaultMessageStore#start()
+         */
         this.reputMessageService = new ReputMessageService();
 
         this.scheduleMessageService = new ScheduleMessageService(this);
@@ -217,6 +230,7 @@ public class DefaultMessageStore implements MessageStore {
 
         this.indexService.start();
 
+        // 添加派发器
         this.dispatcherList = new LinkedList<>();
         this.dispatcherList.addLast(new CommitLogDispatcherBuildConsumeQueue());
         this.dispatcherList.addLast(new CommitLogDispatcherBuildIndex());
@@ -336,6 +350,13 @@ public class DefaultMessageStore implements MessageStore {
             }
             log.info("[SetReputOffset] maxPhysicalPosInLogicQueue={} clMinOffset={} clMaxOffset={} clConfirmedOffset={}",
                 maxPhysicalPosInLogicQueue, this.commitLog.getMinOffset(), this.commitLog.getMaxOffset(), this.commitLog.getConfirmOffset());
+
+            /**
+             * 实时更新更新消息消费队列与索引文件
+             *
+             * 构造位置如下：
+             * @see DefaultMessageStore#DefaultMessageStore(MessageStoreConfig, BrokerStatsManager, MessageArrivingListener, BrokerConfig)
+             */
             this.reputMessageService.setReputFromOffset(maxPhysicalPosInLogicQueue);
             this.reputMessageService.start();
 
@@ -1298,6 +1319,16 @@ public class DefaultMessageStore implements MessageStore {
         return null;
     }
 
+    /**
+     * 根据topic和queueId获取ConsumeQueue文件
+     * 每一个topic对应一个消息消费目录，主题下每一个消费队列对应一个文件夹，取出文件夹下最后的consumeQueue文件即可
+     *
+     * @see DefaultMessageStore#putMessagePositionInfo(DispatchRequest)
+     *
+     * @param topic
+     * @param queueId
+     * @return
+     */
     public ConsumeQueue findConsumeQueue(String topic, int queueId) {
         ConcurrentMap<Integer, ConsumeQueue> map = consumeQueueTable.get(topic);
         if (null == map) {
@@ -1594,8 +1625,14 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     * 根据消息实时更新 ConsumeQueue
+     * @param dispatchRequest
+     */
     public void putMessagePositionInfo(DispatchRequest dispatchRequest) {
+        // 根据topic和queueId得到消费队列下所有文件
         ConsumeQueue cq = this.findConsumeQueue(dispatchRequest.getTopic(), dispatchRequest.getQueueId());
+        // 追加consumequeue条目
         cq.putMessagePositionInfoWrapper(dispatchRequest);
     }
 
@@ -1648,6 +1685,9 @@ public class DefaultMessageStore implements MessageStore {
         }, 6, TimeUnit.SECONDS);
     }
 
+    /**
+     * 消费队列分发器
+     */
     class CommitLogDispatcherBuildConsumeQueue implements CommitLogDispatcher {
 
         @Override
@@ -1665,6 +1705,9 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     * 索引文件分发器
+     */
     class CommitLogDispatcherBuildIndex implements CommitLogDispatcher {
 
         @Override
@@ -1944,8 +1987,14 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     * 实时更新消息消费队列和索引文件
+     */
     class ReputMessageService extends ServiceThread {
 
+        /**
+         * 从哪个物理偏移量开始转发消息给ConsumeQueue和IndexFile
+         */
         private volatile long reputFromOffset = 0;
 
         public long getReputFromOffset() {
@@ -1989,23 +2038,33 @@ public class DefaultMessageStore implements MessageStore {
             }
             for (boolean doNext = true; this.isCommitLogAvailable() && doNext; ) {
 
+                // 允许重复转发 && 提交偏移量
                 if (DefaultMessageStore.this.getMessageStoreConfig().isDuplicationEnable()
                     && this.reputFromOffset >= DefaultMessageStore.this.getConfirmOffset()) {
                     break;
                 }
 
+                // 1.返回reputFromOffset偏移量开始的全部有效数据（commitlog文件）
                 SelectMappedBufferResult result = DefaultMessageStore.this.commitLog.getData(reputFromOffset);
                 if (result != null) {
                     try {
                         this.reputFromOffset = result.getStartOffset();
 
                         for (int readSize = 0; readSize < result.getSize() && doNext; ) {
+
+                            // 2.检查消息，并构建分发入参
                             DispatchRequest dispatchRequest =
                                 DefaultMessageStore.this.commitLog.checkMessageAndReturnSize(result.getByteBuffer(), false, false);
                             int size = dispatchRequest.getBufferSize() == -1 ? dispatchRequest.getMsgSize() : dispatchRequest.getBufferSize();
 
                             if (dispatchRequest.isSuccess()) {
+                                // 消息长度大于0
                                 if (size > 0) {
+                                    /**
+                                     * 3.调用分发器处理
+                                     * @see CommitLogDispatcherBuildConsumeQueue
+                                     * @see CommitLogDispatcherBuildIndex
+                                     */
                                     DefaultMessageStore.this.doDispatch(dispatchRequest);
 
                                     if (BrokerRole.SLAVE != DefaultMessageStore.this.getMessageStoreConfig().getBrokerRole()
@@ -2062,6 +2121,7 @@ public class DefaultMessageStore implements MessageStore {
 
             while (!this.isStopped()) {
                 try {
+                    // 每执行一次任务推送，休眠1ms
                     Thread.sleep(1);
                     this.doReput();
                 } catch (Exception e) {

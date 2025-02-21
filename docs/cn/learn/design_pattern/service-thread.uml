@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.rocketmq.store.DefaultMessageStore.ReputMessageService</OriginalElement>
+  <nodes>
+    <node x="-109.5" y="346.0">org.apache.rocketmq.store.DefaultMessageStore.ReputMessageService</node>
+    <node x="-99.5" y="-14.0">java.lang.FunctionalInterface</node>
+    <node x="-60.5" y="106.0">java.lang.Runnable</node>
+    <node x="-80.0" y="226.0">org.apache.rocketmq.common.ServiceThread</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="java.lang.Runnable" target="java.lang.FunctionalInterface" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.common.ServiceThread" target="java.lang.Runnable" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.store.DefaultMessageStore.ReputMessageService" target="org.apache.rocketmq.common.ServiceThread" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.5" showDependencies="false" x="36.6666666666664" y="212.66666666666674" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Inner Classes</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

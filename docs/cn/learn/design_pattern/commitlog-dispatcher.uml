@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.rocketmq.store.DefaultMessageStore.CommitLogDispatcherBuildConsumeQueue</OriginalElement>
+  <nodes>
+    <node x="-191.0" y="166.0">org.apache.rocketmq.store.DefaultMessageStore.CommitLogDispatcherBuildConsumeQueue</node>
+    <node x="-111.5" y="-14.0">org.apache.rocketmq.store.CommitLogDispatcher</node>
+    <node x="68.5" y="106.0">org.apache.rocketmq.store.DefaultMessageStore.CommitLogDispatcherBuildIndex</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.apache.rocketmq.store.DefaultMessageStore.CommitLogDispatcherBuildIndex" target="org.apache.rocketmq.store.CommitLogDispatcher" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="220.0" y="80.0" />
+      <point x="0.0" y="80.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.store.DefaultMessageStore.CommitLogDispatcherBuildConsumeQueue" target="org.apache.rocketmq.store.CommitLogDispatcher" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.5" showDependencies="false" x="100.5" y="100.0" />
+  <SelectedNodes />
+  <Categories>
+    <Category>Inner Classes</Category>
+  </Categories>
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

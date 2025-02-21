@@ -28,16 +28,37 @@ import org.apache.rocketmq.store.config.StorePathConfigHelper;
 /**
  * 消息消费队列
  * 消息到达CommitLog文件后，将异步转发到消息消费队列，供消息消费者消费
+ *
+ * 设计原理：
+ * RocketMQ基于主题/订阅模式实现消息消费，消费者关心的是一个主题下的所有消息，但由于同一主题的消息不连续地存储在commitlog文件下，
+ * 如果消息消费者直接从消息存储文件（commitlog）中遍历查找主题topic下的消息，效率将极其低下。
+ * RocketMQ为了适应消息消费的检索需求，设计了消息消费队列文件，该队列文件可以看成是commitlog关于消息消费的“索引”文件，
+ * consumequeue的第一级目录为消息主题topic，第二级目录为主题的消息队列
+ *
+ * 为了加速consumeQueue消息条目的检索速度与节省磁盘空间，每一个consumequeue条目不会存储消息的全量信息
+ *
  */
 public class ConsumeQueue {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
+    /**
+     * ConsumeQueue条目的存储单元大小为20字节
+     * 8（commitlog offset） + 4（size） + 8（taghashcode）
+     */
     public static final int CQ_STORE_UNIT_SIZE = 20;
+
+
     private static final InternalLogger LOG_ERROR = InternalLoggerFactory.getLogger(LoggerName.STORE_ERROR_LOGGER_NAME);
 
     private final DefaultMessageStore defaultMessageStore;
 
+    /**
+     * 逻辑概念
+     * 可以看做是${ROCKET_HOME}/store/consumequeue/{topic}/{queueId}/下的文件
+     * 而mappedFiles中的MappedFile则对应该文件夹下的一个个文件
+     */
     private final MappedFileQueue mappedFileQueue;
+
     private final String topic;
     private final int queueId;
     private final ByteBuffer byteBufferIndex;
@@ -380,6 +401,14 @@ public class ConsumeQueue {
         return this.minLogicOffset / CQ_STORE_UNIT_SIZE;
     }
 
+    /**
+     * 追加consumequeue条目
+     *
+     * DispatchRequest的构造
+     * @see CommitLog#checkMessageAndReturnSize(ByteBuffer, boolean, boolean)
+     *
+     * @param request
+     */
     public void putMessagePositionInfoWrapper(DispatchRequest request) {
         final int maxRetries = 30;
         boolean canWrite = this.defaultMessageStore.getRunningFlags().isCQWriteable();
@@ -399,6 +428,7 @@ public class ConsumeQueue {
                         topic, queueId, request.getCommitLogOffset());
                 }
             }
+            // 处理条目
             boolean result = this.putMessagePositionInfo(request.getCommitLogOffset(),
                 request.getMsgSize(), tagsCode, request.getConsumeQueueOffset());
             if (result) {
@@ -426,6 +456,15 @@ public class ConsumeQueue {
         this.defaultMessageStore.getRunningFlags().makeLogicsQueueError();
     }
 
+    /**
+     * 处理条目
+     *
+     * @param offset
+     * @param size
+     * @param tagsCode
+     * @param cqOffset
+     * @return
+     */
     private boolean putMessagePositionInfo(final long offset, final int size, final long tagsCode,
         final long cqOffset) {
 
@@ -435,11 +474,16 @@ public class ConsumeQueue {
         }
 
         this.byteBufferIndex.flip();
+        // consumequeue条目，20 = 8 + 4 + 8
         this.byteBufferIndex.limit(CQ_STORE_UNIT_SIZE);
+        // 消息偏移量
         this.byteBufferIndex.putLong(offset);
+        // 消息长度
         this.byteBufferIndex.putInt(size);
+        // 消息过滤 tag hashcode
         this.byteBufferIndex.putLong(tagsCode);
 
+        // 计算物理地址，待写入位置 = 偏移量 * 单位
         final long expectLogicOffset = cqOffset * CQ_STORE_UNIT_SIZE;
 
         MappedFile mappedFile = this.mappedFileQueue.getLastMappedFile(expectLogicOffset);
@@ -475,6 +519,7 @@ public class ConsumeQueue {
                 }
             }
             this.maxPhysicOffset = offset + size;
+            // 追加到consumeQueue的映射文件中
             return mappedFile.appendMessage(this.byteBufferIndex.array());
         }
         return false;

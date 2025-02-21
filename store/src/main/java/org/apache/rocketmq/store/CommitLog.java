@@ -71,6 +71,7 @@ public class CommitLog {
     protected final static int BLANK_MAGIC_CODE = -875286124;
 
     /**
+     * 逻辑概念
      * 可以看做是${ROCKET_HOME}/store/commitlog/文件夹
      * 而mappedFiles中的MappedFile则对应该文件夹下的一个个文件
      *
@@ -274,7 +275,14 @@ public class CommitLog {
     }
 
     /**
+     * 检查消息并返回
      * check the message and returns the message size
+     *
+     * 入口
+     * @see DefaultMessageStore.ReputMessageService#doReput()
+     *
+     * 消息byteBuffer的构造
+     * @see
      *
      * @return 0 Come the end of the file // >0 Normal messages // -1 Message checksum failure
      */
@@ -1228,10 +1236,11 @@ public class CommitLog {
      *
      * @param offset
      * @param size
-     * @return
+     * @return  包含Buffer
      */
     public SelectMappedBufferResult getMessage(final long offset, final int size) {
         int mappedFileSize = this.defaultMessageStore.getMessageStoreConfig().getMappedFileSizeCommitLog();
+        // 先找到文件，也即物理偏移量
         MappedFile mappedFile = this.mappedFileQueue.findMappedFileByOffset(offset, offset == 0);
         if (mappedFile != null) {
             int pos = (int) (offset % mappedFileSize);
@@ -1242,6 +1251,16 @@ public class CommitLog {
 
     /**
      * 返回下一个文件的起始偏移量
+     *
+     * 示例：
+     * 1、假设 offset 为 1024，mappedFileSize 为 1024（即每个文件大小为 1024 字节），那么：
+     *  offset % mappedFileSize 的结果是 0。
+     * 新的偏移量为 1024 + 1024 - 0 = 2048，即下一个文件的起始偏移量为 2048。
+     *
+     * 2、如果 offset 为 1500，则：
+     * offset % mappedFileSize 的结果是 476。
+     * 新的偏移量为 1500 + 1024 - 476 = 2048，同样指向下一个文件的起始位置
+     *
      * @param offset
      * @return
      */
@@ -1603,6 +1622,15 @@ public class CommitLog {
             return msgStoreItemMemory;
         }
 
+        /**
+         * 构建消息
+         *
+         * @param fileFromOffset
+         * @param byteBuffer
+         * @param maxBlank
+         * @param msgInner
+         * @return
+         */
         public AppendMessageResult doAppend(final long fileFromOffset, final ByteBuffer byteBuffer, final int maxBlank,
             final MessageExtBrokerInner msgInner) {
             // STORETIMESTAMP + STOREHOSTADDRESS + OFFSET <br>
@@ -1639,15 +1667,23 @@ public class CommitLog {
                 msgId = MessageDecoder.createMessageId(this.msgIdV6Memory, msgInner.getStoreHostBytes(storeHostHolder), wroteOffset);
             }
 
+            // 记录消费队列信息
             // Record ConsumeQueue information
             keyBuilder.setLength(0);
             keyBuilder.append(msgInner.getTopic());
             keyBuilder.append('-');
             keyBuilder.append(msgInner.getQueueId());
+            // topic-queueId
             String key = keyBuilder.toString();
-            // TODO-QIU: 2025年2月14日, 0014 没太懂偏移量
-            // 8.获取该消息在消息队列的偏移量
-            // CommitLog中保存了当前所有消息队列的当前待写入偏移量
+
+            /**
+             * 8.获取该消息在消息队列的偏移量
+             * CommitLog中保存了当前所有消息队列的当前待写入偏移量
+             * 写入偏移量是为了commitlog完成后通过线程实时更新consumeQueue
+             *
+             * @see DefaultMessageStore#putMessagePositionInfo(DispatchRequest)
+             *
+             */
             Long queueOffset = CommitLog.this.topicQueueTable.get(key);
             if (null == queueOffset) {
                 queueOffset = 0L;
@@ -1687,7 +1723,7 @@ public class CommitLog {
 
             final int bodyLength = msgInner.getBody() == null ? 0 : msgInner.getBody().length;
 
-            // 9.计算消息的总长度
+            // 9.计算消息长度
             final int msgLen = calMsgLength(msgInner.getSysFlag(), bodyLength, topicLength, propertiesLength);
 
             // Exceeds the maximum message
@@ -1738,7 +1774,7 @@ public class CommitLog {
             this.msgStoreItemMemory.putInt(msgInner.getFlag());
             // 6 QUEUEOFFSET
             this.msgStoreItemMemory.putLong(queueOffset);
-            // 7 PHYSICALOFFSET
+            // 7 PHYSICALOFFSET 存储消息的物理偏移量
             this.msgStoreItemMemory.putLong(fileFromOffset + byteBuffer.position());
             // 8 SYSFLAG
             this.msgStoreItemMemory.putInt(msgInner.getSysFlag());

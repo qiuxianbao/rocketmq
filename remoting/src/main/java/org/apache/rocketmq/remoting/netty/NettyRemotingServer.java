@@ -245,7 +245,11 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
                                 new NettyDecoder(),
                                 // TODO-QIU: 2024年3月30日, 0030 IdleStateHandler做什么用的
                                 new IdleStateHandler(0, 0, nettyServerConfig.getServerChannelMaxIdleTimeSeconds()),
-                                // 连接Handler
+                                /**
+                                 * 连接Handler
+                                 * @see org.apache.rocketmq.remoting.netty.NettyRemotingServer#prepareSharableHandlers
+                                 * @see org.apache.rocketmq.remoting.netty.NettyRemotingServer.NettyConnectManageHandler
+                                 */
                                 connectionManageHandler,
                                 // 处理handler
                                 serverHandler
@@ -466,7 +470,7 @@ public class NettyRemotingServer extends NettyRemotingAbstract implements Remoti
     }
 
     /**
-     * 连接管理
+     * 连接管理（服务端）
      */
     @ChannelHandler.Sharable
     class NettyConnectManageHandler extends ChannelDuplexHandler {

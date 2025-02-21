@@ -75,12 +75,16 @@ public class MappedFileQueue {
     /**
      * 当前刷盘指针
      * 表示该指针之前的所有数据全部持久化到磁盘
+     *
+     * @see ConsumeQueue#putMessagePositionInfo(long, int, long, long)
      */
     private long flushedWhere = 0;
 
     /**
      * 当前数据提交指针，
      * 内存中ByteBuffer当前的写指针，该值大于等于flushedWhere
+     *
+     * @see ConsumeQueue#putMessagePositionInfo(long, int, long, long)
      */
     private long committedWhere = 0;
 

@@ -250,6 +250,12 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
         }
     }
 
+    /**
+     * 关闭通道
+     *
+     * @param addr
+     * @param channel
+     */
     public void closeChannel(final String addr, final Channel channel) {
         if (null == channel)
             return;
@@ -274,6 +280,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                     }
 
                     if (removeItemFromTable) {
+                        // 移除
                         this.channelTables.remove(addrRemote);
                         log.info("closeChannel: the channel[{}] was removed from channel table", addrRemote);
                     }
@@ -391,10 +398,13 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                 doAfterRpcHooks(RemotingHelper.parseChannelRemoteAddr(channel), request, response);
                 return response;
             } catch (RemotingSendRequestException e) {
+                // 发送异常
                 log.warn("invokeSync: send request exception, so close the channel[{}]", addr);
+                // 关闭通道
                 this.closeChannel(addr, channel);
                 throw e;
             } catch (RemotingTimeoutException e) {
+                // 超时异常
                 // 如果超时，是否关闭连接，默认为false
 
                 // 场景：namesrv假死，namesrv和broker在同一台机器上
@@ -415,6 +425,14 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
         }
     }
 
+    /**
+     * 获取/创建连接
+     *
+     * @param addr
+     * @return
+     * @throws RemotingConnectException
+     * @throws InterruptedException
+     */
     private Channel getAndCreateChannel(final String addr) throws RemotingConnectException, InterruptedException {
         if (null == addr) {
             return getAndCreateNameserverChannel();
@@ -425,6 +443,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
             return cw.getChannel();
         }
 
+        // 和broker建立连接
         return this.createChannel(addr);
     }
 
@@ -477,7 +496,14 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
         return null;
     }
 
+    /**
+     * 建立连接
+     * @param addr
+     * @return
+     * @throws InterruptedException
+     */
     private Channel createChannel(final String addr) throws InterruptedException {
+        // channel包装类
         ChannelWrapper cw = this.channelTables.get(addr);
         if (cw != null && cw.isOK()) {
             return cw.getChannel();
@@ -502,7 +528,10 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                 }
 
                 if (createNewConnection) {
-                    // TCP连接
+                    /**
+                     * TCP连接
+                     * @see NettyConnectManageHandler#connect(ChannelHandlerContext, SocketAddress, SocketAddress, ChannelPromise)
+                     */
                     ChannelFuture channelFuture = this.bootstrap.connect(RemotingHelper.string2SocketAddress(addr));
                     log.info("createChannel: begin to connect remote host[{}] asynchronously", addr);
                     cw = new ChannelWrapper(channelFuture);
@@ -527,6 +556,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                     log.warn("createChannel: connect remote host[" + addr + "] failed, " + channelFuture.toString(), channelFuture.cause());
                 }
             } else {
+                // 超时
                 log.warn("createChannel: connect remote host[{}] timeout {}ms, {}", addr, this.nettyClientConfig.getConnectTimeoutMillis(),
                     channelFuture.toString());
             }
@@ -652,7 +682,11 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
         }
     }
 
-    // 连接管理，通过阻塞队列，按照事件类型处理
+    /**
+     * 连接管理（客户端）
+     * 通过阻塞队列，按照事件类型处理
+     * @see NettyRemotingClient#start()
+     */
     class NettyConnectManageHandler extends ChannelDuplexHandler {
         @Override
         public void connect(ChannelHandlerContext ctx, SocketAddress remoteAddress, SocketAddress localAddress,

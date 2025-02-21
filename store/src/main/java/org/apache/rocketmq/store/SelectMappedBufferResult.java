@@ -18,6 +18,9 @@ package org.apache.rocketmq.store;
 
 import java.nio.ByteBuffer;
 
+/**
+ * 查找到的消息
+ */
 public class SelectMappedBufferResult {
 
     private final long startOffset;

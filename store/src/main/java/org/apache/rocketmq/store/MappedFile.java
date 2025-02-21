@@ -382,6 +382,11 @@ public class MappedFile extends ReferenceResource {
         return this.fileFromOffset;
     }
 
+    /**
+     * 追加消息
+     * @param data
+     * @return
+     */
     public boolean appendMessage(final byte[] data) {
         int currentPos = this.wrotePosition.get();
 
