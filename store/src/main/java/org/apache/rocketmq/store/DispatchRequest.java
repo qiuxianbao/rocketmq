@@ -71,6 +71,7 @@ public class DispatchRequest {
 
     /**
      * 消息唯一键
+     * @see org.apache.rocketmq.common.message.MessageClientIDSetter#setUniqID(org.apache.rocketmq.common.message.Message)
      */
     private final String uniqKey;
 

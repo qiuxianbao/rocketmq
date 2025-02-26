@@ -43,7 +43,7 @@ public class MessageStoreConfig {
     private int mappedFileSizeCommitLog = 1024 * 1024 * 1024;
 
     /**
-     * 消费队列文件的条目，默认是30W
+     * 消费队列文件的大小，默认是30W个条目
      */
     // ConsumeQueue file size,default is 30W
     private int mappedFileSizeConsumeQueue = 300000 * ConsumeQueue.CQ_STORE_UNIT_SIZE;
@@ -125,8 +125,17 @@ public class MessageStoreConfig {
     private int accessMessageInMemoryMaxRatio = 40;
     @ImportantField
     private boolean messageIndexEnable = true;
+
+    /**
+     * hash槽位
+     */
     private int maxHashSlotNum = 5000000;
+
+    /**
+     * index条目
+     */
     private int maxIndexNum = 5000000 * 4;
+
     private int maxMsgsNumBatch = 64;
     @ImportantField
     private boolean messageIndexSafe = false;

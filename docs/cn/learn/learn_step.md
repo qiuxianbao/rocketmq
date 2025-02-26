@@ -162,6 +162,9 @@ Broker服务器IP + 端口号、消息发送者的IP地址
 （4）最后通过FileChannel.force()进行刷盘，保证消息的持久化。以及主从同步操作
 ```
 
+* 实时更新消息消费队列与索引文件
+分发器处理
+
 
 * ConsumeQueue
 消息消费队列，消息到达commitlog文件后，将异步转发到消息消费队列中，供消息消费者消息
@@ -169,19 +172,34 @@ Broker服务器IP + 端口号、消息发送者的IP地址
 ![consumequeue](local/images/store/consumequeue.png "consumequeue文件的组织方式")
 ![consumequeue-item](local/images/store/consumequeue-item.png "consumequeue条目")
 
-
-？？实时更新消息消费队列与索引文件
-
-？？消息队列与索引文件恢复
+说明：结构
+每个条目大小是 8(commitlog offset) + 4(size) + 8(tag hashcode) = 20Byte，最大是30W
 
 
+核心类：
+ConsumeQueue#putMessagePositionInfo
 
 
 * Index
 IndexFile索引文件，主要是为了加速消息的检索性能，根据消息的属性快速从CommitLog文件中检索消息
-主要存储Key与Offset的对应关系
+主要存储消息索引键与Offset的对应关系
+![index](local/images/store/index.png "index索引文件组织方式及条目")
+
+说明：结构
+IndexHead(40={beginTimestampIndex=8 + endTimestampIndex=8 + beginPhyoffsetIndex=8 + endPhyoffsetIndex=8 + hashSlotcountIndex=4 + indexCountIndex=4})
+    + hash槽位(500W，存储的是索引条目的下标，即第几个) 
+    + + 索引条目（2000W, 20={hashcode=4 + phyOffset=8 + timeDiff=4 + preIndexNo=4}）
+
+核心类：
+IndexService#buildIndex
+
 
 * checkpoint
+
+
+？？消息队列与索引文件恢复
+
+
 
 
 * 文件刷盘机制
@@ -190,13 +208,17 @@ IndexFile索引文件，主要是为了加速消息的检索性能，根据消�
 * 过期文件删除机制
 
 
-
+RocketMQ中的偏移量含义
 ??发送结果中的含义
 msgId，消息ID生成器
 offsetMsgId
 queueOffset
 consumeQueueOffset
 queueId，选择的队列的id
+
+物理偏移量
+逻辑偏移量
+
 
 
 

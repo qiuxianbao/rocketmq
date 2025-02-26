@@ -20,21 +20,74 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * 索引头部
+ * 40 = 8 + 8 + 8 + 8 + 4 + 4
+ *
+ * beginTimestampIndex=8
+ * endTimestampIndex=8
+ * beginPhyoffsetIndex=8
+ * endPhyoffsetIndex=8
+ * hashSlotcountIndex=4
+ * indexCountIndex=4
+ *
+ */
 public class IndexHeader {
+
+    /**
+     * Header的大小
+     * @see IndexHeader#updateByteBuffer()
+     */
     public static final int INDEX_HEADER_SIZE = 40;
+
+    /**
+     * 最小存储时间
+     */
     private static int beginTimestampIndex = 0;
+
+    /**
+     * 最大存储时间
+     */
     private static int endTimestampIndex = 8;
+
+    /**
+     * 最小物理偏移量（commitlog文件偏移量）
+     */
     private static int beginPhyoffsetIndex = 16;
+
+    /**
+     * 最大物理偏移量（commitlog文件偏移量）
+     */
     private static int endPhyoffsetIndex = 24;
+
+    /**
+     * hashSlot个数，并不是hash槽使用的个数
+     * 意义不大
+     */
     private static int hashSlotcountIndex = 32;
+
+    /**
+     * Index条目列表当前已使用的个数
+     * Index条目在Index条目列表中是按顺序存储
+     */
     private static int indexCountIndex = 36;
+
     private final ByteBuffer byteBuffer;
+
     private AtomicLong beginTimestamp = new AtomicLong(0);
     private AtomicLong endTimestamp = new AtomicLong(0);
+
     private AtomicLong beginPhyOffset = new AtomicLong(0);
     private AtomicLong endPhyOffset = new AtomicLong(0);
+
+    /**
+     * hash槽使用个数
+     */
     private AtomicInteger hashSlotCount = new AtomicInteger(0);
 
+    /**
+     * 索引条目下标
+     */
     private AtomicInteger indexCount = new AtomicInteger(1);
 
     public IndexHeader(final ByteBuffer byteBuffer) {

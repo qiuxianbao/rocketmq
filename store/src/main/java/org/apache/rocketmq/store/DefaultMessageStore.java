@@ -119,6 +119,7 @@ public class DefaultMessageStore implements MessageStore {
      * CommitLog消息分发
      * 根据CommitLog文件构建ConsumeQueue、IndexFile文件
      *
+     * @see ReputMessageService#doReput() 分别调用2个dispatcher
      * @see ServiceThread 对线程进行了封装
      */
     private final ReputMessageService reputMessageService;
@@ -228,9 +229,11 @@ public class DefaultMessageStore implements MessageStore {
 
         this.allocateMappedFileService.start();
 
+        // 索引文件处理实现类
+        // start() 是空的
         this.indexService.start();
 
-        // 添加派发器
+        // 添加分发器
         this.dispatcherList = new LinkedList<>();
         this.dispatcherList.addLast(new CommitLogDispatcherBuildConsumeQueue());
         this.dispatcherList.addLast(new CommitLogDispatcherBuildIndex());
@@ -352,7 +355,8 @@ public class DefaultMessageStore implements MessageStore {
                 maxPhysicalPosInLogicQueue, this.commitLog.getMinOffset(), this.commitLog.getMaxOffset(), this.commitLog.getConfirmOffset());
 
             /**
-             * 实时更新更新消息消费队列与索引文件
+             * 实时更新更新
+             * 处理消息消费队列与索引文件
              *
              * 构造位置如下：
              * @see DefaultMessageStore#DefaultMessageStore(MessageStoreConfig, BrokerStatsManager, MessageArrivingListener, BrokerConfig)
@@ -1626,7 +1630,9 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
-     * 根据消息实时更新 ConsumeQueue
+     * 构建ConsumeQueue
+     * 根据消息实时更新
+     *
      * @param dispatchRequest
      */
     public void putMessagePositionInfo(DispatchRequest dispatchRequest) {
@@ -1706,13 +1712,15 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
-     * 索引文件分发器
+     * 索引分发器
      */
     class CommitLogDispatcherBuildIndex implements CommitLogDispatcher {
 
         @Override
         public void dispatch(DispatchRequest request) {
+            // 默认messageIndexEnable=true
             if (DefaultMessageStore.this.messageStoreConfig.isMessageIndexEnable()) {
+                // 构建hash索引
                 DefaultMessageStore.this.indexService.buildIndex(request);
             }
         }

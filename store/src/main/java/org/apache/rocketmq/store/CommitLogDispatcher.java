@@ -20,6 +20,9 @@ package org.apache.rocketmq.store;
 /**
  * CommitLog文件转发请求处理
  * Dispatcher of commit log.
+ *
+ * @see DefaultMessageStore.CommitLogDispatcherBuildConsumeQueue 构建消息队列
+ * @see DefaultMessageStore.CommitLogDispatcherBuildIndex 构建索引
  */
 public interface CommitLogDispatcher {
 
