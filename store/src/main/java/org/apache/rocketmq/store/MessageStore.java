@@ -47,11 +47,13 @@ public interface MessageStore {
     void start() throws Exception;
 
     /**
+     * 安全地停止服务
      * Shutdown this message store.
      */
     void shutdown();
 
     /**
+     * 销毁资源
      * Destroy this message store. Generally, all persistent files should be removed after invocation.
      */
     void destroy();

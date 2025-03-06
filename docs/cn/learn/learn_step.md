@@ -195,17 +195,29 @@ IndexService#buildIndex
 
 
 * checkpoint
+![checkpoint](local/images/store/checkpoint.png "checkpoint文件组织方式及条目")
+记录commitlog、consumequeue、index文件的刷盘时间点
+说明：结构
+physicMsgTimestamp=8 + logicsMsgTimestamp=8 + indexMsgTimestamp=8
 
 
-？？消息队列与索引文件恢复
+* 消息队列与索引文件恢复
+Q: 由于RocketMQ存储首先将消息全量存储在commitlog文件中，然后异步生成转发任务更新consumequeue、index文件。
+如果消息成功存储到commitlog文件中，转发任务未成功执行，此时消息服务器由于某个原因宕机，导致commitlog、consumequeue、indexfile文件数据不一致。
+如果不加以人工修复的话，会有一部分消息即在commitlog文件中存在，但是由于没有转发到consumequeue，这部分消息永远不会被消息消费者消费。
 
+A: 存储文件加载流程
+正常恢复
+异常恢复
 
 
 
 * 文件刷盘机制
 ![rocketmq_design_2](../image/rocketmq_design_2.png "消息存储设计原理")
 
+
 * 过期文件删除机制
+
 
 
 RocketMQ中的偏移量含义

@@ -164,6 +164,7 @@ public class MappedFileQueue {
         List<MappedFile> willRemoveFiles = new ArrayList<MappedFile>();
 
         for (MappedFile file : this.mappedFiles) {
+            // 文件尾部偏移量
             long fileTailOffset = file.getFileFromOffset() + this.mappedFileSize;
             if (fileTailOffset > offset) {
                 if (offset >= file.getFileFromOffset()) {
@@ -171,7 +172,9 @@ public class MappedFileQueue {
                     file.setCommittedPosition((int) (offset % this.mappedFileSize));
                     file.setFlushedPosition((int) (offset % this.mappedFileSize));
                 } else {
+                    // 文件是在有效文件后面创建的
                     file.destroy(1000);
+                    // 添加到待删除列表中
                     willRemoveFiles.add(file);
                 }
             }
@@ -180,6 +183,10 @@ public class MappedFileQueue {
         this.deleteExpiredFile(willRemoveFiles);
     }
 
+    /**
+     * 删除过期文件
+     * @param files
+     */
     void deleteExpiredFile(List<MappedFile> files) {
 
         if (!files.isEmpty()) {
@@ -222,6 +229,7 @@ public class MappedFileQueue {
                     // 构造初始化
                     MappedFile mappedFile = new MappedFile(file.getPath(), mappedFileSize);
 
+                    // TODO-QIU: 2025年3月3日, 0003
                     mappedFile.setWrotePosition(this.mappedFileSize);
                     mappedFile.setFlushedPosition(this.mappedFileSize);
                     mappedFile.setCommittedPosition(this.mappedFileSize);
@@ -671,6 +679,9 @@ public class MappedFileQueue {
         }
     }
 
+    /**
+     * 销毁
+     */
     public void destroy() {
         for (MappedFile mf : this.mappedFiles) {
             mf.destroy(1000 * 3);

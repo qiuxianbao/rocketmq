@@ -53,7 +53,7 @@ public class IndexService {
     private final String storePath;
 
     /**
-     * 索引文件
+     * 索引文件集合
      */
     private final ArrayList<IndexFile> indexFileList = new ArrayList<IndexFile>();
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -79,9 +79,12 @@ public class IndexService {
                     IndexFile f = new IndexFile(file.getPath(), this.hashSlotNum, this.indexNum, 0, 0);
                     f.load();
 
+                    // 上次是异常退出
                     if (!lastExitOK) {
+                        // 索引文件上次刷盘时间小于该索引文件刷盘的最大消息时间戳
                         if (f.getEndTimestamp() > this.defaultMessageStore.getStoreCheckpoint()
                             .getIndexMsgTimestamp()) {
+                            // 销毁
                             f.destroy(0);
                             continue;
                         }

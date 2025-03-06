@@ -249,6 +249,8 @@ public class BrokerController {
                     ((DLedgerCommitLog)((DefaultMessageStore) messageStore).getCommitLog()).getdLedgerServer().getdLedgerLeaderElector().addRoleChangeHandler(roleChangeHandler);
                 }
                 this.brokerStats = new BrokerStats((DefaultMessageStore) this.messageStore);
+
+                // 加载插件
                 //load plugin
                 MessageStorePluginContext context = new MessageStorePluginContext(messageStoreConfig, brokerStatsManager, messageArrivingListener, brokerConfig);
                 this.messageStore = MessageStoreFactory.build(context, this.messageStore);
@@ -261,7 +263,7 @@ public class BrokerController {
             }
         }
 
-        // 加载commitLog
+        // 加载commitLog、consumequeue、index
         result = result && this.messageStore.load();
 
         if (result) {

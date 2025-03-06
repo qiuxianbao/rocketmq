@@ -29,16 +29,37 @@ import org.apache.rocketmq.logging.InternalLoggerFactory;
 
 /**
  * 文件刷盘监测点
+ * 作用：记录commitlog、consumequeue、index文件的刷盘时间点
  */
 public class StoreCheckpoint {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
     private final RandomAccessFile randomAccessFile;
     private final FileChannel fileChannel;
     private final MappedByteBuffer mappedByteBuffer;
+
+    /**
+     * commitlog文件
+     * 刷盘时间点
+     */
     private volatile long physicMsgTimestamp = 0;
+
+    /**
+     * 消息消费队列文件
+     * 刷盘时间点
+     */
     private volatile long logicsMsgTimestamp = 0;
+
+    /**
+     * 索引文件
+     * 刷盘时间点
+     */
     private volatile long indexMsgTimestamp = 0;
 
+    /**
+     * 初始化
+     * @param scpPath scp文件路径
+     * @throws IOException
+     */
     public StoreCheckpoint(final String scpPath) throws IOException {
         File file = new File(scpPath);
         MappedFile.ensureDirOK(file.getParent());
@@ -46,12 +67,16 @@ public class StoreCheckpoint {
 
         this.randomAccessFile = new RandomAccessFile(file, "rw");
         this.fileChannel = this.randomAccessFile.getChannel();
+        // 内存映射
         this.mappedByteBuffer = fileChannel.map(MapMode.READ_WRITE, 0, MappedFile.OS_PAGE_SIZE);
 
         if (fileExists) {
             log.info("store checkpoint file exists, " + scpPath);
+            // 8个字节
             this.physicMsgTimestamp = this.mappedByteBuffer.getLong(0);
+            // 8个字节
             this.logicsMsgTimestamp = this.mappedByteBuffer.getLong(8);
+            // 8个字节
             this.indexMsgTimestamp = this.mappedByteBuffer.getLong(16);
 
             log.info("store checkpoint file physicMsgTimestamp " + this.physicMsgTimestamp + ", "
@@ -101,10 +126,18 @@ public class StoreCheckpoint {
         this.logicsMsgTimestamp = logicsMsgTimestamp;
     }
 
+    /**
+     * 和索引文件比
+     * @return
+     */
     public long getMinTimestampIndex() {
         return Math.min(this.getMinTimestamp(), this.indexMsgTimestamp);
     }
 
+    /**
+     * commitlog与comsumequeue检测点的最小值
+     * @return
+     */
     public long getMinTimestamp() {
         long min = Math.min(this.physicMsgTimestamp, this.logicsMsgTimestamp);
 

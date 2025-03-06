@@ -39,6 +39,7 @@ import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.message.MessageExtBatch;
 import org.apache.rocketmq.store.config.FlushDiskType;
 import org.apache.rocketmq.store.config.MessageStoreConfig;
+import org.apache.rocketmq.store.index.IndexService;
 import org.apache.rocketmq.store.util.LibC;
 import sun.nio.ch.DirectBuffer;
 
@@ -393,6 +394,7 @@ public class MappedFile extends ReferenceResource {
         if ((currentPos + data.length) <= this.fileSize) {
             try {
                 this.fileChannel.position(currentPos);
+                // 通过文件通道写入数据
                 this.fileChannel.write(ByteBuffer.wrap(data));
             } catch (Throwable e) {
                 log.error("Error occurred when append message to mappedFile.", e);
@@ -710,8 +712,13 @@ public class MappedFile extends ReferenceResource {
                 log.info("close file channel " + this.fileName + " OK");
 
                 long beginTime = System.currentTimeMillis();
-                // TODO-QIU: 2025年2月14日, 0014 为什么要删除文件
-                // 删除物理文件
+
+                /**
+                 * 删除物理文件
+                 *
+                 * 异常退出
+                 * @see IndexService#load(boolean)
+                 */
                 boolean result = this.file.delete();
                 log.info("delete file[REF:" + this.getRefCount() + "] " + this.fileName
                     + (result ? " OK, " : " Failed, ") + "W:" + this.getWrotePosition() + " M:"
