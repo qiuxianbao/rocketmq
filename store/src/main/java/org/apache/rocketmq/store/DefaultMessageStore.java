@@ -151,7 +151,7 @@ public class DefaultMessageStore implements MessageStore {
     private volatile boolean shutdown = true;
 
     /**
-     * 文件刷盘监测点
+     * 文件刷盘检测点
      */
     private StoreCheckpoint storeCheckpoint;
 
@@ -180,14 +180,19 @@ public class DefaultMessageStore implements MessageStore {
         if (messageStoreConfig.isEnableDLegerCommitLog()) {
             this.commitLog = new DLedgerCommitLog(this);
         } else {
-            // 创建CommitLog文件
+            /**
+             * 创建CommitLog文件
+             * 构建刷盘线程
+             */
             this.commitLog = new CommitLog(this);
         }
 
         // 创建消息消费队列
         this.consumeQueueTable = new ConcurrentHashMap<>(32);
 
+        //
         this.flushConsumeQueueService = new FlushConsumeQueueService();
+
         this.cleanCommitLogService = new CleanCommitLogService();
         this.cleanConsumeQueueService = new CleanConsumeQueueService();
         this.storeStatsService = new StoreStatsService();
@@ -300,7 +305,7 @@ public class DefaultMessageStore implements MessageStore {
             result = result && this.loadConsumeQueue();
 
             if (result) {
-                // 5.加载文件刷盘监测点
+                // 5.加载文件刷盘检测点
                 // commitlog文件、consumequeue、index索引文件
                 this.storeCheckpoint =
                     new StoreCheckpoint(StorePathConfigHelper.getStoreCheckpoint(this.messageStoreConfig.getStorePathRootDir()));
@@ -330,6 +335,8 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
+     * 启动
+     * @see org.apache.rocketmq.broker.BrokerController#start()
      * @throws Exception
      */
     public void start() throws Exception {
@@ -376,8 +383,8 @@ public class DefaultMessageStore implements MessageStore {
                 maxPhysicalPosInLogicQueue, this.commitLog.getMinOffset(), this.commitLog.getMaxOffset(), this.commitLog.getConfirmOffset());
 
             /**
-             * 实时更新更新
-             * 处理消息消费队列与索引文件
+             * 启动消息分发
+             * 用于实时更新处理 消息消费队列consumequeue 与索引文件index
              *
              * 构造位置如下：
              * @see DefaultMessageStore#DefaultMessageStore(MessageStoreConfig, BrokerStatsManager, MessageArrivingListener, BrokerConfig)
@@ -404,7 +411,9 @@ public class DefaultMessageStore implements MessageStore {
             this.handleScheduleMessageService(messageStoreConfig.getBrokerRole());
         }
 
+        //
         this.flushConsumeQueueService.start();
+        // 启动刷盘线程
         this.commitLog.start();
         this.storeStatsService.start();
 
@@ -561,6 +570,7 @@ public class DefaultMessageStore implements MessageStore {
         }
 
         long beginTime = this.getSystemClock().now();
+        //
         CompletableFuture<PutMessageResult> putResultFuture = this.commitLog.asyncPutMessage(msg);
 
         putResultFuture.thenAccept((result) -> {
@@ -610,6 +620,8 @@ public class DefaultMessageStore implements MessageStore {
 
     /**
      * 消息发送存储流程
+     * @see
+     *
      * @param msg Message instance to store
      * @return
      */
@@ -2003,6 +2015,9 @@ public class DefaultMessageStore implements MessageStore {
         }
     }
 
+    /**
+     * 消费队列的刷盘线程
+     */
     class FlushConsumeQueueService extends ServiceThread {
         private static final int RETRY_TIMES_OVER = 3;
         private long lastFlushTimestamp = 0;

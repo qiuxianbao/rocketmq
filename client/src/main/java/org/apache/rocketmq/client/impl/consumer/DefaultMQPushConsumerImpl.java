@@ -1008,6 +1008,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
     @Override
     public void doRebalance() {
         if (!this.pause) {
+            // TODO-QIU: 2025年3月6日, 0006
             this.rebalanceImpl.doRebalance(this.isConsumeOrderly());
         }
     }

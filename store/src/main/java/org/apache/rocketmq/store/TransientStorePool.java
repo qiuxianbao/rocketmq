@@ -68,7 +68,7 @@ public class TransientStorePool {
     }
 
     /**
-     * 创建poolSize个对外内存
+     * 创建poolSize个堆外内存
      * 并利用 com.sun.jna 库锁定内存，避免被置换到交换区，提高存储性能
      *
      * It's a heavy init method.

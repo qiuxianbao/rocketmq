@@ -20,7 +20,6 @@ package org.apache.rocketmq.common;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 
-// TODO-QIU: 2024年7月26日, 0026
 /**
  * Add reset feature for @see java.util.concurrent.CountDownLatch
  *

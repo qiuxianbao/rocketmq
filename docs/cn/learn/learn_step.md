@@ -209,16 +209,17 @@ Q: 由于RocketMQ存储首先将消息全量存储在commitlog文件中，然后
 A: 存储文件加载流程
 正常恢复
 异常恢复
+到commitlog，没到consumequeue和Index的消息，重新发一次
 
 
 
 * 文件刷盘机制
 ![rocketmq_design_2](../image/rocketmq_design_2.png "消息存储设计原理")
 
+启动commitlog的刷盘线程，每处理1次加锁等待10ms
 
-* 过期文件删除机制
 
-
+![flush-pool](local/images/store/flush-pool.png "磁盘刷写流程")
 
 RocketMQ中的偏移量含义
 ??发送结果中的含义
@@ -230,6 +231,12 @@ queueId，选择的队列的id
 
 物理偏移量
 逻辑偏移量
+
+
+
+* 过期文件删除机制
+
+
 
 
 

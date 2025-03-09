@@ -30,6 +30,9 @@ public class AppendMessageResult {
     // Where to start writing
     private long wroteOffset;
 
+    /**
+     * 写的字节数
+     */
     // Write Bytes
     private int wroteBytes;
 

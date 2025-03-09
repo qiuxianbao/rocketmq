@@ -28,7 +28,7 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 
 /**
- * 文件刷盘监测点
+ * 文件刷盘检测点
  * 作用：记录commitlog、consumequeue、index文件的刷盘时间点
  */
 public class StoreCheckpoint {

@@ -198,6 +198,7 @@ public abstract class ServiceThread implements Runnable {
 
     /**
      * 阻塞指定时间间隔后运行（protected表明是让子类调用）
+     * @see org.apache.rocketmq.store.CommitLog.GroupCommitService#run()
      *
      * @param interval
      */
@@ -223,6 +224,9 @@ public abstract class ServiceThread implements Runnable {
         }
     }
 
+    /**
+     * 由子类实现
+     */
     protected void onWaitEnd() {
     }
 

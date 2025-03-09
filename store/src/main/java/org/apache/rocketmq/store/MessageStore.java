@@ -58,7 +58,9 @@ public interface MessageStore {
      */
     void destroy();
 
-    /** Store a message into store in async manner, the processor can process the next request
+    /**
+     * 异步处理消息
+     * Store a message into store in async manner, the processor can process the next request
      *  rather than wait for result
      *  when result is completed, notify the client in async manner
      *
@@ -66,7 +68,7 @@ public interface MessageStore {
      * @return a CompletableFuture for the result of store operation
      */
     default CompletableFuture<PutMessageResult> asyncPutMessage(final MessageExtBrokerInner msg) {
-        //
+        // 先putMessage把消息放到Buffer中，然后异步刷盘
         return CompletableFuture.completedFuture(putMessage(msg));
     }
 

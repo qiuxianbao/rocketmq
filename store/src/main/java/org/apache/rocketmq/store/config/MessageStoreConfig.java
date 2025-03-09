@@ -56,11 +56,18 @@ public class MessageStoreConfig {
     // this will be set by pipe of calculate filter bit map.
     private int bitMapLengthConsumeQueueExt = 64;
 
+    /**
+     * FlushRealTImeService线程任务运行间隔
+     */
     // CommitLog flush interval
     // flush data to disk
     @ImportantField
     private int flushIntervalCommitLog = 500;
 
+    /**
+     * CommitRealTimeService 线程间隔时间
+     * 将堆外内存的数据写入到FileChannel的间隔频率
+     */
     // Only used if TransientStorePool enabled
     // flush data to FileChannel
     @ImportantField
@@ -72,9 +79,13 @@ public class MessageStoreConfig {
      */
     private boolean useReentrantLockWhenPutMessage = false;
 
+    /**
+     * 是否定时刷盘
+     */
     // Whether schedule flush,default is real-time
     @ImportantField
     private boolean flushCommitLogTimed = false;
+
     // ConsumeQueue flush interval
     private int flushIntervalConsumeQueue = 1000;
     // Resource reclaim interval
@@ -100,16 +111,35 @@ public class MessageStoreConfig {
     // This ensures no on-the-wire or on-disk corruption to the messages occurred.
     // This check adds some overhead,so it may be disabled in cases seeking extreme performance.
     private boolean checkCRCOnRecover = true;
+
+    /**
+     * 一次刷写任务至少包含页数，如果待刷写数据不足，小于该参数配置的值，将忽略本次刷写任务，默认为4页
+     */
     // How many pages are to be flushed when flush CommitLog
     private int flushCommitLogLeastPages = 4;
+
+    /**
+     * 一次提交任务至少包含页数
+     * 如果待提交数据不足，小于该参数配置的值，将忽略本次提交任务
+     */
     // How many pages are to be committed when commit data to file
     private int commitCommitLogLeastPages = 4;
+
     // Flush page size when the disk in warming state
     private int flushLeastPagesWhenWarmMapedFile = 1024 / 4 * 16;
     // How many pages are to be flushed when flush ConsumeQueue
     private int flushConsumeQueueLeastPages = 2;
+
+    /**
+     * 两次真实刷写任务最大间隔，默认10s
+     */
     private int flushCommitLogThoroughInterval = 1000 * 10;
+
+    /**
+     * 两次真实提交最大间隔
+     */
     private int commitCommitLogThoroughInterval = 200;
+
     private int flushConsumeQueueThoroughInterval = 1000 * 60;
     @ImportantField
     private int maxTransferBytesOnMessageInMemory = 1024 * 256;
@@ -148,8 +178,17 @@ public class MessageStoreConfig {
     private int haSlaveFallbehindMax = 1024 * 1024 * 256;
     @ImportantField
     private BrokerRole brokerRole = BrokerRole.ASYNC_MASTER;
+
+    /**
+     * 刷盘方式
+     * 默认为异步
+     */
     @ImportantField
     private FlushDiskType flushDiskType = FlushDiskType.ASYNC_FLUSH;
+
+    /**
+     * 刷盘超时时间
+     */
     private int syncFlushTimeout = 1000 * 5;
     private String messageDelayLevel = "1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h";
     private long flushDelayOffsetInterval = 1000 * 10;

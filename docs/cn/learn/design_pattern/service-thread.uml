@@ -3,10 +3,14 @@
   <ID>JAVA</ID>
   <OriginalElement>org.apache.rocketmq.store.DefaultMessageStore.ReputMessageService</OriginalElement>
   <nodes>
-    <node x="-109.5" y="346.0">org.apache.rocketmq.store.DefaultMessageStore.ReputMessageService</node>
-    <node x="-99.5" y="-14.0">java.lang.FunctionalInterface</node>
-    <node x="-60.5" y="106.0">java.lang.Runnable</node>
-    <node x="-80.0" y="226.0">org.apache.rocketmq.common.ServiceThread</node>
+    <node x="234.25373134328356" y="286.0">org.apache.rocketmq.store.DefaultMessageStore.ReputMessageService</node>
+    <node x="33.0" y="406.0">org.apache.rocketmq.store.DefaultMessageStore.FlushConsumeQueueService</node>
+    <node x="41.0" y="586.0">org.apache.rocketmq.store.CommitLog.GroupCommitService</node>
+    <node x="-101.0" y="646.0">org.apache.rocketmq.store.CommitLog.FlushRealTimeService</node>
+    <node x="-90.5" y="-14.0">java.lang.FunctionalInterface</node>
+    <node x="-110.0" y="466.0">org.apache.rocketmq.store.CommitLog.FlushCommitLogService</node>
+    <node x="-72.5" y="286.0">org.apache.rocketmq.common.ServiceThread</node>
+    <node x="-52.0" y="106.0">java.lang.Runnable</node>
   </nodes>
   <notes />
   <edges>
@@ -14,17 +18,35 @@
       <point x="0.0" y="-14.0" />
       <point x="0.0" y="14.0" />
     </edge>
+    <edge source="org.apache.rocketmq.store.CommitLog.GroupCommitService" target="org.apache.rocketmq.store.CommitLog.FlushCommitLogService" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="149.0" y="560.0" />
+      <point x="9.0" y="560.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
     <edge source="org.apache.rocketmq.common.ServiceThread" target="java.lang.Runnable" relationship="REALIZATION">
       <point x="0.0" y="-14.0" />
       <point x="0.0" y="14.0" />
     </edge>
-    <edge source="org.apache.rocketmq.store.DefaultMessageStore.ReputMessageService" target="org.apache.rocketmq.common.ServiceThread" relationship="GENERALIZATION">
+    <edge source="org.apache.rocketmq.store.DefaultMessageStore.FlushConsumeQueueService" target="org.apache.rocketmq.common.ServiceThread" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="169.0" y="380.0" />
+      <point x="9.0" y="380.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.store.CommitLog.FlushRealTimeService" target="org.apache.rocketmq.store.CommitLog.FlushCommitLogService" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.store.CommitLog.FlushCommitLogService" target="org.apache.rocketmq.common.ServiceThread" relationship="GENERALIZATION">
       <point x="0.0" y="-14.0" />
       <point x="0.0" y="14.0" />
     </edge>
   </edges>
-  <settings layout="Hierarchic Compact" zoom="1.5" showDependencies="false" x="36.6666666666664" y="212.66666666666674" />
-  <SelectedNodes />
+  <settings layout="Hierarchic Compact" zoom="0.8516949152542372" showDependencies="false" x="307.10199004975135" y="464.45771144278604" />
+  <SelectedNodes>
+    <node>org.apache.rocketmq.store.CommitLog.FlushCommitLogService</node>
+  </SelectedNodes>
   <Categories>
     <Category>Inner Classes</Category>
   </Categories>
