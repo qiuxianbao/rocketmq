@@ -44,23 +44,6 @@ public abstract class ReferenceResource {
     }
 
     /**
-     * 关闭
-     * @param intervalForcibly
-     */
-    public void shutdown(final long intervalForcibly) {
-        if (this.available) {
-            this.available = false;
-            this.firstShutdownTimestamp = System.currentTimeMillis();
-            this.release();
-        } else if (this.getRefCount() > 0) {
-            if ((System.currentTimeMillis() - this.firstShutdownTimestamp) >= intervalForcibly) {
-                this.refCount.set(-1000 - this.getRefCount());
-                this.release();
-            }
-        }
-    }
-
-    /**
      * 释放资源
      */
     public void release() {
@@ -72,6 +55,26 @@ public abstract class ReferenceResource {
         synchronized (this) {
 
             this.cleanupOver = this.cleanup(value);
+        }
+    }
+
+    /**
+     * 关闭
+     * @param intervalForcibly
+     */
+    public void shutdown(final long intervalForcibly) {
+        if (this.available) {
+            this.available = false;
+            // 首次执行，记录当前时间
+            this.firstShutdownTimestamp = System.currentTimeMillis();
+            this.release();
+        } else if (this.getRefCount() > 0) {
+            // 再次执行的时间间隔 > 第一次拒绝后保留的最大时间
+            if ((System.currentTimeMillis() - this.firstShutdownTimestamp) >= intervalForcibly) {
+                // 减少引用数
+                this.refCount.set(-1000 - this.getRefCount());
+                this.release();
+            }
         }
     }
 

@@ -88,21 +88,53 @@ public class MessageStoreConfig {
 
     // ConsumeQueue flush interval
     private int flushIntervalConsumeQueue = 1000;
+
+    /**
+     * 清除资源的调度间隔时间
+     */
     // Resource reclaim interval
     private int cleanResourceInterval = 10000;
+
+    /**
+     * 删除物理文件的间隔
+     *
+     *
+     */
     // CommitLog removal interval
     private int deleteCommitLogFilesInterval = 100;
     // ConsumeQueue removal interval
     private int deleteConsumeQueueFilesInterval = 100;
+
+    /**
+     * 在清除文件时，如果该文件被其他线程所占用（引用次数 > 0，比如读取消息），此时会阻止此次删除任务，同时在第一次试图删除该文件时，记录当前时间戳。
+     * destroyMapedFileIntervalForcibly 表示第一次拒绝删除之后能保留的最大时间
+     * 在此时间内，同样可以被拒绝删除，同时会将引用减少1000个，超过该时间间隔后，文件将被强制删除
+     */
     private int destroyMapedFileIntervalForcibly = 1000 * 120;
+
     private int redeleteHangedFileInterval = 1000 * 120;
+
+    /**
+     * 指定删除文件的时间点
+     */
     // When to delete,default is at 4 am
     @ImportantField
     private String deleteWhen = "04";
+
+    /**
+     * 表示commitlog，consumequeue文件所在磁盘分区的最大使用量
+     * 如果超过该值，需要立即清除过期文件
+     */
     private int diskMaxUsedSpaceRatio = 75;
+
+    /**
+     * 过期文件的保留时间
+     * 也就是从最后一次更新到现在，如果超过了该时间，则认为是过期文件，可以被删除
+     */
     // The number of hours to keep a log file before deleting it (in hours)
     @ImportantField
     private int fileReservedTime = 72;
+
     // Flow control for ConsumeQueue
     private int putMsgIndexHightWater = 600000;
     // The maximum size of message,default is 4M
@@ -192,8 +224,13 @@ public class MessageStoreConfig {
     private int syncFlushTimeout = 1000 * 5;
     private String messageDelayLevel = "1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h";
     private long flushDelayOffsetInterval = 1000 * 10;
+
+    /**
+     *
+     */
     @ImportantField
     private boolean cleanFileForciblyEnable = true;
+
     private boolean warmMapedFileEnable = false;
     private boolean offsetCheckInSlave = false;
     private boolean debugLockEnable = false;

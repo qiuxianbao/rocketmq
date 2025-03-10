@@ -124,12 +124,20 @@ public class RunningFlags {
         return false;
     }
 
+    /**
+     * 设置磁盘不可写
+     * @return
+     */
     public boolean getAndMakeDiskFull() {
         boolean result = !((this.flagBits & DISK_FULL_BIT) == DISK_FULL_BIT);
         this.flagBits |= DISK_FULL_BIT;
         return result;
     }
 
+    /**
+     * 恢复磁盘为可写
+     * @return
+     */
     public boolean getAndMakeDiskOK() {
         boolean result = !((this.flagBits & DISK_FULL_BIT) == DISK_FULL_BIT);
         this.flagBits &= ~DISK_FULL_BIT;

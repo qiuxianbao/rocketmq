@@ -703,8 +703,10 @@ public class MappedFile extends ReferenceResource {
      * @return
      */
     public boolean destroy(final long intervalForcibly) {
+        //
         this.shutdown(intervalForcibly);
 
+        // 判断引用数
         if (this.isCleanupOver()) {
             try {
                 // 关闭文件通道
@@ -734,6 +736,7 @@ public class MappedFile extends ReferenceResource {
                 + " Failed. cleanupOver: " + this.cleanupOver);
         }
 
+        // 拒绝删除
         return false;
     }
 

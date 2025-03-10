@@ -210,9 +210,11 @@ public class UtilAll {
             if (!file.exists())
                 return -1;
 
+            // 总容量
             long totalSpace = file.getTotalSpace();
 
             if (totalSpace > 0) {
+                // 剩余容量
                 long freeSpace = file.getFreeSpace();
                 long usedSpace = totalSpace - freeSpace;
 
