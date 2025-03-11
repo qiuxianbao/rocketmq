@@ -25,12 +25,17 @@ import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.message.MessageExt;
 
+/**
+ * Tag模式过滤
+ * 消费者
+ */
 public class TagFilterConsumer {
 
     public static void main(String[] args) throws InterruptedException, MQClientException, IOException {
 
         DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("please_rename_unique_group_name");
 
+        // 订阅tag，多个用 || 分隔
         consumer.subscribe("TagFilterTest", "TagA || TagC");
 
         consumer.registerMessageListener(new MessageListenerConcurrently() {

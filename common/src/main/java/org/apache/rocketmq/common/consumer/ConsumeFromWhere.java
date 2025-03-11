@@ -16,7 +16,10 @@
  */
 package org.apache.rocketmq.common.consumer;
 
-// TODO-QIU: 2024年3月29日, 0029
+/**
+ * 消息消费
+ * 从何处来时
+ */
 public enum ConsumeFromWhere {
 
     // 默认值

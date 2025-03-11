@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.rocketmq.client.consumer.listener.MessageListener</OriginalElement>
+  <nodes>
+    <node x="-90.5" y="-14.0">org.apache.rocketmq.client.consumer.listener.MessageListener</node>
+    <node x="-118.5" y="166.0">org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly</node>
+    <node x="19.5" y="106.0">org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently" target="org.apache.rocketmq.client.consumer.listener.MessageListener" relationship="INTERFACE_GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="160.0" y="80.0" />
+      <point x="0.0" y="80.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly" target="org.apache.rocketmq.client.consumer.listener.MessageListener" relationship="INTERFACE_GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.2000000000000002" showDependencies="false" x="135.08333333333337" y="137.5" />
+  <SelectedNodes />
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

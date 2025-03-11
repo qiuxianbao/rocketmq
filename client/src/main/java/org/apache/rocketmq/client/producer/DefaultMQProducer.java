@@ -319,6 +319,7 @@ public class DefaultMQProducer extends ClientConfig implements MQProducer {
     /**
      * 同步发送消息
      * 具体发送到topic中那个队列由负载算法决定
+     * @see MessageQueueSelector
      *
      * Send message in synchronous mode. This method returns only when the sending procedure totally completes. </p>
      *

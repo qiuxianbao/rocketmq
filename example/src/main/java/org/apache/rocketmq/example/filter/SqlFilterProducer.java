@@ -22,6 +22,10 @@ import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 
+/**
+ * Tag-SQL模式过滤
+ * 生产者
+ */
 public class SqlFilterProducer {
 
     public static void main(String[] args) throws Exception {

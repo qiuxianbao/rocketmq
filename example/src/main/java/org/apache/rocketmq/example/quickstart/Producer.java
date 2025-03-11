@@ -25,6 +25,7 @@ import org.apache.rocketmq.remoting.common.RemotingHelper;
 import java.nio.ByteBuffer;
 
 /**
+ * 生产者示例
  * This class demonstrates how to send messages to brokers using provided {@link DefaultMQProducer}.
  */
 public class Producer {

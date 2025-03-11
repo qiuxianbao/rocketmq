@@ -21,6 +21,14 @@ import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 
+/**
+ * Tag模式过滤
+ * 生产者
+ *
+ * 场景：
+ * 对于同一类的功能（数据同步）创建一个主题，但对于该主题下的数据，可能不同的系统关心的数据不一样
+ * 比如：订单数据只有订单下游子系统关心，库存子系统则关心库存数据
+ */
 public class TagFilterProducer {
 
     public static void main(String[] args) throws Exception {

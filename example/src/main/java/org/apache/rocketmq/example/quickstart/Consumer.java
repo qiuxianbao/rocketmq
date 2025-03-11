@@ -26,9 +26,9 @@ import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
 
 /**
+ * 消费者示例
  * This example shows how to subscribe and consume messages using providing {@link DefaultMQPushConsumer}.
  */
-// TODO-QIU: 2024年4月16日, 0016
 public class Consumer {
 
     public static void main(String[] args) throws InterruptedException, MQClientException {

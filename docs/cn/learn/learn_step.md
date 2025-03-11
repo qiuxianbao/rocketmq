@@ -286,6 +286,13 @@ RocketMQ的消费逻辑由主节点负责，从节点不直接处理消费请求
 只支持特定延迟级别的延时消息
 
 ## 事务消息
+![rocketmq_design_10](../image/rocketmq_design_10.png "事务消息")
+
+
+方案：本地消息表
+
+
+# RocketMQ监控与运维
 
 
 # 工具：mqadmin.sh

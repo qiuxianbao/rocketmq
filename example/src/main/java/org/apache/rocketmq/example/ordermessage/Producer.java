@@ -29,6 +29,15 @@ import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 
+/**
+ * 有序消费
+ * 自定义消息发送队列器
+ *
+ * 场景：保证局部有序，而非全局有序
+ * 需要生产者（自定义MessageQueueSelector，使同一个订单发到同一个队列中）和消费者配合（顺序消费）
+ *
+ * 参考资料：https://blog.51cto.com/u_14861909/5505820
+ */
 public class Producer {
     public static void main(String[] args) throws UnsupportedEncodingException {
         try {
@@ -41,9 +50,11 @@ public class Producer {
                 Message msg =
                     new Message("TopicTestjjj", tags[i % tags.length], "KEY" + i,
                         ("Hello RocketMQ " + i).getBytes(RemotingHelper.DEFAULT_CHARSET));
+                // 自定义队列选择器
                 SendResult sendResult = producer.send(msg, new MessageQueueSelector() {
                     @Override
                     public MessageQueue select(List<MessageQueue> mqs, Message msg, Object arg) {
+                        // 对id求模，即同一个id的数据向同一个队列中发送
                         Integer id = (Integer) arg;
                         int index = id % mqs.size();
                         return mqs.get(index);

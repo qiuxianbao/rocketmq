@@ -26,6 +26,9 @@ import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
 
+/**
+ * 有序消费
+ */
 public class Consumer {
 
     public static void main(String[] args) throws MQClientException {
@@ -35,6 +38,7 @@ public class Consumer {
 
         consumer.subscribe("TopicTest", "TagA || TagC || TagD");
 
+        // 顺序消费
         consumer.registerMessageListener(new MessageListenerOrderly() {
             AtomicLong consumeTimes = new AtomicLong(0);
 

@@ -617,7 +617,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
             for (; times < timesTotal; times++) {
                 String lastBrokerName = null == mq ? null : mq.getBrokerName();
                 /**
-                 * 2.选择队列
+                 * 2.选择队列，默认轮询
                  * 可以进行broker故障规避
                  */
                 MessageQueue mqSelected = this.selectOneMessageQueue(topicPublishInfo, lastBrokerName);
@@ -772,6 +772,12 @@ public class DefaultMQProducerImpl implements MQProducerInner {
 
     /**
      * 发送消息
+     *
+     * 默认
+     * @see DefaultMQProducerImpl#sendDefaultImpl(Message, CommunicationMode, SendCallback, long)
+     *
+     * 指定队列选择器
+     * @see DefaultMQProducerImpl#sendSelectImpl(Message, MessageQueueSelector, Object, CommunicationMode, SendCallback, long)
      *
      * @param msg   待发送的消息
      * @param mq    消息发送到该消息队列上
@@ -1220,6 +1226,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                 String userTopic = NamespaceUtil.withoutNamespace(userMessage.getTopic(), mQClientFactory.getClientConfig().getNamespace());
                 userMessage.setTopic(userTopic);
 
+                // 通过自定义队列选择器来选择队列
                 mq = mQClientFactory.getClientConfig().queueWithNamespace(selector.select(messageQueueList, userMessage, arg));
             } catch (Throwable e) {
                 throw new MQClientException("select message queue throwed exception.", e);
@@ -1230,6 +1237,7 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                 throw new RemotingTooMuchRequestException("sendSelectImpl call timeout");
             }
             if (mq != null) {
+                //
                 return this.sendKernelImpl(msg, mq, communicationMode, sendCallback, null, timeout - costTime);
             } else {
                 throw new MQClientException("select message queue return null.", null);

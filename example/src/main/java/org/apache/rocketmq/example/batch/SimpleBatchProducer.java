@@ -22,10 +22,14 @@ import java.util.List;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.message.Message;
 
+/**
+ * 批量发送消息示例
+ */
 public class SimpleBatchProducer {
 
     public static void main(String[] args) throws Exception {
         DefaultMQProducer producer = new DefaultMQProducer("BatchProducerGroupName");
+        producer.setNamesrvAddr("127.0.0.1:9876");
         producer.start();
 
         //If you just send messages of no more than 1MiB at a time, it is easy to use batch
@@ -37,5 +41,7 @@ public class SimpleBatchProducer {
         messages.add(new Message(topic, "Tag", "OrderID003", "Hello world 2".getBytes()));
 
         producer.send(messages);
+
+        producer.shutdown();
     }
 }
