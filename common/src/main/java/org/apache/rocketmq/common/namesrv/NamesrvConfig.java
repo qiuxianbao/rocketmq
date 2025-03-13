@@ -52,6 +52,11 @@ public class NamesrvConfig {
      */
     private String configStorePath = System.getProperty("user.home") + File.separator + "namesrv" + File.separator + "namesrv.properties";
     private String productEnvName = "center";
+
+    /**
+     * 是否开启集群测试
+     * 默认关闭
+     */
     private boolean clusterTest = false;
 
     /**

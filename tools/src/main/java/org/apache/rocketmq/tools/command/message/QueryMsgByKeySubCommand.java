@@ -22,6 +22,7 @@ import org.apache.commons.cli.Options;
 import org.apache.rocketmq.client.QueryResult;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.message.MessageExt;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.rocketmq.tools.command.SubCommand;
@@ -45,6 +46,15 @@ public class QueryMsgByKeySubCommand implements SubCommand {
         opt.setRequired(true);
         options.addOption(opt);
 
+        /**
+         * 从namesrv获取主题的路由，然后并发向broker发送 {@link RequestCode#QUERY_MESSAGE}
+         * 待topic所有broker返回结果后合并返回
+         *
+         * [root@localhost bin]# ./mqadmin queryMsgByKey -n 10.110.104.105:9876 -t acc_charging_mq_aiparkcity -k e7b7a9d0-419f-4abf-8eba-56f470e4c208
+         * #Message ID                                        #QID                                  #Offset
+         * 0A6E6865112D7852E9223966378EB110                      3                                    68664
+         *
+         */
         opt = new Option("k", "msgKey", true, "Message Key");
         opt.setRequired(true);
         options.addOption(opt);

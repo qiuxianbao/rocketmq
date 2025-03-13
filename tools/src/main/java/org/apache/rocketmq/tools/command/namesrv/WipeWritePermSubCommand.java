@@ -20,6 +20,7 @@ import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.rocketmq.tools.command.SubCommand;
@@ -39,6 +40,10 @@ public class WipeWritePermSubCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+        /**
+         * 向namesrv发送 {@link RequestCode#WIPE_WRITE_PERM_OF_BROKER}
+         * 将存储在namesrv上的所有关于主题中分布在该broker上的所有队列的权限设置为非可写，也就是拒绝向该broker上写消息
+         */
         Option opt = new Option("b", "brokerName", true, "broker name");
         opt.setRequired(true);
         options.addOption(opt);

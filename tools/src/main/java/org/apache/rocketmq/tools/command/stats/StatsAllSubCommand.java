@@ -153,6 +153,27 @@ public class StatsAllSubCommand implements SubCommand {
         opt.setRequired(false);
         options.addOption(opt);
 
+        /**
+         * [root@localhost bin]# ./mqadmin statsAll -n 10.110.104.105:9876 -t acc_charging_mq_aiparkcity
+         *
+         * #Accumulation，总的消息消费堆积条数
+         * #InTPS，broker每分钟发送消息到broker的tps
+         * #OutTPS，broker每分钟消息消费组消息拉取的tps
+         * #InMsg24Hour，broker一天消息发送总数量
+         * #OutMsg24Hour，broker一天总拉取条数
+         *
+         * #Topic                                                            #Consumer Group                                                  #Accumulation      #InTPS     #OutTPS   #InMsg24Hour  #OutMsg24Hour
+         * acc_charging_mq_aiparkcity                                        GID_acc_protocolData_device_aiparkcity                                      0        0.03        0.00          10203              0
+         * acc_charging_mq_aiparkcity                                        GID_acc_charging_cam_accs_aiparkcity                                        0        0.03        0.00          10203              0
+         * acc_charging_mq_aiparkcity                                        GID_acc_charging_upay_aiparkcity                                            0        0.03        0.00          10203              0
+         * acc_charging_mq_aiparkcity                                        GID_acc_charging_spss_aiparkcity                                            0        0.03        0.00          10203              0
+         * acc_charging_mq_aiparkcity                                        GID_acc_connector_spss_aiparkcity                                           0        0.03        0.03          10203            704
+         * acc_charging_mq_aiparkcity                                        GID_acc_charging_accs_aiparkcity_station_connector                          0        0.03        0.03          10203            704
+         * acc_charging_mq_aiparkcity                                        GID_acc_fix_transactionNo_spss_aiparkcity                                   0        0.03        0.00          10203              0
+         * acc_charging_mq_aiparkcity                                        GID_acc_charging_accs_aiparkcity_parking_record                        429780        0.03        0.00          10203              0
+         * acc_charging_mq_aiparkcity                                        GID_acc_connector_offline_spss_aiparkcity                                   0        0.03        0.00          10203           9499
+         *
+         */
         opt = new Option("t", "topic", true, "print select topic only");
         opt.setRequired(false);
         options.addOption(opt);

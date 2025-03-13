@@ -50,38 +50,47 @@ public class UpdateSubGroupSubCommand implements SubCommand {
         opt.setRequired(false);
         options.addOption(opt);
 
+        // 消费组名称
         opt = new Option("g", "groupName", true, "consumer group name");
         opt.setRequired(true);
         options.addOption(opt);
 
+        // 消费组是否允许消息消息
         opt = new Option("s", "consumeEnable", true, "consume enable");
         opt.setRequired(false);
         options.addOption(opt);
 
+        // 设置消费组是否可以从最小的偏移量开始消费
         opt = new Option("m", "consumeFromMinEnable", true, "from min offset");
         opt.setRequired(false);
         options.addOption(opt);
 
+        // 设置消息消费组是否可以开启广播模式
         opt = new Option("d", "consumeBroadcastEnable", true, "broadcast");
         opt.setRequired(false);
         options.addOption(opt);
 
+        // 消息消费组重试队列个数，默认为1
         opt = new Option("q", "retryQueueNums", true, "retry queue nums");
         opt.setRequired(false);
         options.addOption(opt);
 
+        // 消息消费组最大重试次数，默认为16
         opt = new Option("r", "retryMaxTimes", true, "retry max times");
         opt.setRequired(false);
         options.addOption(opt);
 
+        // brokerId, 设置该消费组默认拉取主服务器ID，默认是0
         opt = new Option("i", "brokerId", true, "consumer from which broker id");
         opt.setRequired(false);
         options.addOption(opt);
 
+        // 主服务器消息消费缓慢时由哪个服务器承担读请求，默认为1
         opt = new Option("w", "whichBrokerWhenConsumeSlowly", true, "which broker id when consume slowly");
         opt.setRequired(false);
         options.addOption(opt);
 
+        // 当消息消费者个数发生变化后是否立即通知客户端重新进行消息队列分配，默认值为true
         opt = new Option("a", "notifyConsumerIdsChanged", true, "notify consumerId changed");
         opt.setRequired(false);
         options.addOption(opt);

@@ -19,6 +19,7 @@ package org.apache.rocketmq.tools.command.namesrv;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.rocketmq.tools.command.SubCommand;
@@ -41,6 +42,9 @@ public class DeleteKvConfigCommand implements SubCommand {
         opt.setRequired(true);
         options.addOption(opt);
 
+        /**
+         * 向namesrv发送 {@link RequestCode#DELETE_KV_CONFIG} 命令，删除配置命名空间下键为key的配置项
+         */
         opt = new Option("k", "key", true, "set the key name");
         opt.setRequired(true);
         options.addOption(opt);

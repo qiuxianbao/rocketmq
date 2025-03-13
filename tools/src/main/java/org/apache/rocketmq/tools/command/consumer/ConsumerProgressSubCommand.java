@@ -60,6 +60,44 @@ public class ConsumerProgressSubCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         *
+         * [root@localhost bin]# ./mqadmin consumerProgress -n 10.110.104.105:9876 -g GID_acc_charging_accs_aiparkcity_parking_record
+         *
+         * #Topic                                                            #Broker Name                      #QID  #Broker Offset        #Consumer Offset      #Diff                #Inflight           #LastTime
+         * %RETRY%GID_acc_charging_accs_aiparkcity_parking_record            broker-a                          0     0                     0                     0                    0                    N/A
+         * %RETRY%GID_acc_charging_accs_aiparkcity_parking_record            broker-b                          0     0                     0                     0                    0                    N/A
+         * %RETRY%GID_acc_charging_accs_aiparkcity_parking_record            broker-c                          0     0                     0                     0                    0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-a                          0     69046                 51151                 17895                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-a                          1     69065                 51174                 17891                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-a                          2     68992                 51125                 17867                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-a                          3     69031                 51140                 17891                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-a                          4     69066                 51158                 17908                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-a                          5     69089                 51159                 17930                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-a                          6     69108                 51138                 17970                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-a                          7     69141                 51190                 17951                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-b                          0     69085                 51137                 17948                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-b                          1     69095                 51156                 17939                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-b                          2     69063                 51157                 17906                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-b                          3     69004                 51132                 17872                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-b                          4     69039                 51185                 17854                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-b                          5     69046                 51169                 17877                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-b                          6     69011                 51168                 17843                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-b                          7     68995                 51176                 17819                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-c                          0     69012                 51157                 17855                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-c                          1     69046                 51166                 17880                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-c                          2     68999                 51141                 17858                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-c                          3     69079                 51186                 17893                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-c                          4     68985                 51126                 17859                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-c                          5     68973                 51143                 17830                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-c                          6     68999                 51123                 17876                0                    N/A
+         * acc_charging_mq_aiparkcity                                        broker-c                          7     69007                 51165                 17842                0                    N/A
+         *
+         * Consume TPS: 0.00
+         * Consume Diff Total: 429254
+         * Consume Inflight Total: 0
+         */
         Option opt = new Option("g", "groupName", true, "consumer group name");
         opt.setRequired(false);
         options.addOption(opt);

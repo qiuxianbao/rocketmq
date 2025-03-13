@@ -25,6 +25,7 @@ import org.apache.commons.cli.Options;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.common.protocol.ResponseCode;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
@@ -45,6 +46,11 @@ public class ResetOffsetByTimeCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 根据主题的路由信息找出所有master broker地址，逐一发送 {@link RequestCode#INVOKE_BROKER_TO_RESET_OFFSET}请求命令
+         * 在broker端找出该主题所对应的消息消费队列，然后根据时间戳从consumequeue中找到合适的偏移量，用该偏移量更新指定消息消费组的消息消费进度
+         */
         Option opt = new Option("g", "group", true, "set the consumer group");
         opt.setRequired(true);
         options.addOption(opt);

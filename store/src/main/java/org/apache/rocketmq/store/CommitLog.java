@@ -1454,6 +1454,7 @@ public class CommitLog {
     }
 
     /**
+     * commitlog提交
      * 将 ByteBuffer（堆外内存） 新追加的内容（wrotePosition - commitedPosition）的数据提交到 MappedByteBuffer（文件对应的物理内存） 中
      * 初始化
      * @see CommitLog#CommitLog(DefaultMessageStore)

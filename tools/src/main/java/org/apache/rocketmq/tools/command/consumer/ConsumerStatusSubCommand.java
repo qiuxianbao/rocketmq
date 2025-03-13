@@ -52,10 +52,25 @@ public class ConsumerStatusSubCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 获取消息消费组内所有的消息消费客户端连接信息
+         * 其实现是调用 {@link Thread#getAllStackTraces()}
+         *
+         * [root@localhost bin]# ./mqadmin consumerStatus -n 10.110.104.105:9876 -g GID_acc_spss_spss_aiparkcity
+         *
+         * #Index     #ClientId                                             #Version             #ConsumerRunningInfoFile
+         * 1          10.110.104.101@d1bdff8b-7096-4841-ba99-becb24394012   V4_0_0_SNAPSHOT      1741833288506/10.110.104.101@d1bdff8b-7096-4841-ba99-becb24394012
+         *
+         * Same subscription in the same group of consumer
+         *
+         * Rebalance OK
+         */
         Option opt = new Option("g", "consumerGroup", true, "consumer group name");
         opt.setRequired(true);
         options.addOption(opt);
 
+        // 指定消息消费者
         opt = new Option("i", "clientId", true, "The consumer's client id");
         opt.setRequired(false);
         options.addOption(opt);

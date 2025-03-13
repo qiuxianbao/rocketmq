@@ -19,6 +19,7 @@ package org.apache.rocketmq.tools.command.namesrv;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.rocketmq.tools.command.SubCommand;
@@ -41,6 +42,10 @@ public class UpdateKvConfigCommand implements SubCommand {
         opt.setRequired(true);
         options.addOption(opt);
 
+        /**
+         * 直接将KV信息发送命令 {@link RequestCode#PUT_KV_CONFIG} 到namesrv，更新KV配置项并默认持久化到 ${user.home}/namesrv/kvConfig.json
+         * 可以在namesrv配置文件中设置kvConfigPath路径
+         */
         opt = new Option("k", "key", true, "set the key name");
         opt.setRequired(true);
         options.addOption(opt);

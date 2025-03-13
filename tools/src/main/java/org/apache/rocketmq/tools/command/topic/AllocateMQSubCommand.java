@@ -46,10 +46,145 @@ public class AllocateMQSubCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 根据topic的路由信息与消息消费者列表
+         * 输出各个消息消费队列的分配情况跟，分配算法使用平均分配
+         *
+         * [root@localhost bin]# ./mqadmin allocateMQ -n 10.110.104.105:9876 -t acc_charging_mq_aiparkcity -i 10.110.104.101
+         *
+         * {
+         * 	"result": {
+         * 		"10.110.104.101": [
+         * 			            {
+         * 				"brokerName": "broker-b",
+         * 				"queueId": 3,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-c",
+         * 				"queueId": 4,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-a",
+         * 				"queueId": 2,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-b",
+         * 				"queueId": 2,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-c",
+         * 				"queueId": 3,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-a",
+         * 				"queueId": 1,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-b",
+         * 				"queueId": 5,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-c",
+         * 				"queueId": 6,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-a",
+         * 				"queueId": 4,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-b",
+         * 				"queueId": 4,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-c",
+         * 				"queueId": 5,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-a",
+         * 				"queueId": 3,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-c",
+         * 				"queueId": 0,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-b",
+         * 				"queueId": 1,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-c",
+         * 				"queueId": 2,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-a",
+         * 				"queueId": 0,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-b",
+         * 				"queueId": 0,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-c",
+         * 				"queueId": 1,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-b",
+         * 				"queueId": 7,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-a",
+         * 				"queueId": 6,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-b",
+         * 				"queueId": 6,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-c",
+         * 				"queueId": 7,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-a",
+         * 				"queueId": 5,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            },
+         *            {
+         * 				"brokerName": "broker-a",
+         * 				"queueId": 7,
+         * 				"topic": "acc_charging_mq_aiparkcity"
+         *            }
+         * 		]
+         * 	}
+         * }
+         */
         Option opt = new Option("t", "topic", true, "topic name");
         opt.setRequired(true);
         options.addOption(opt);
 
+        // 消费者列表
         opt = new Option("i", "ipList", true, "ipList");
         opt.setRequired(true);
         options.addOption(opt);

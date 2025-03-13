@@ -20,6 +20,7 @@ package org.apache.rocketmq.tools.command.broker;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.rocketmq.tools.command.SubCommand;
@@ -39,6 +40,11 @@ public class CleanUnusedTopicCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 首先定位到broker，然后发送 ${@link RequestCode#CLEAN_UNUSED_TOPIC}
+         * broker端判断主题未使用的依据是没有消息消费者订阅该主题，此时删除该主题下的所有消息消费队列
+         */
         Option opt = new Option("b", "brokerAddr", true, "Broker address");
         opt.setRequired(false);
         options.addOption(opt);

@@ -22,6 +22,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.rocketmq.common.TopicConfig;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.common.sysflag.TopicSysFlag;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.srvutil.ServerUtil;
@@ -46,31 +47,44 @@ public class UpdateTopicSubCommand implements SubCommand {
     public Options buildCommandlineOptions(Options options) {
         OptionGroup optionGroup = new OptionGroup();
 
+        // broker地址
         Option opt = new Option("b", "brokerAddr", true, "create topic to which broker");
         optionGroup.addOption(opt);
 
+        /**
+         * 需要向namesrv发送{@link RequestCode#GET_BROKER_CLUSTER_INFO} 命令获取 broker master的服务器地址
+         * 然后向broker发送{@link RequestCode#UPDATE_AND_CREATE_TOPIC}
+         *
+         * broker存储主题配置信息的默认路径为：${ROCKETMQ_HOME}/store/config/topic.json
+         * broker通过与namesrv的心跳将主题与broker队列信息上报给namesrv，即Topic路由信息
+         */
         opt = new Option("c", "clusterName", true, "create topic to which cluster");
         optionGroup.addOption(opt);
 
         optionGroup.setRequired(true);
         options.addOptionGroup(optionGroup);
 
+        // 主题名称
         opt = new Option("t", "topic", true, "topic name");
         opt.setRequired(true);
         options.addOption(opt);
 
+        // 读队列个数，默认4个
         opt = new Option("r", "readQueueNums", true, "set read queue nums");
         opt.setRequired(false);
         options.addOption(opt);
 
+        // 写队列个数，默认4个
         opt = new Option("w", "writeQueueNums", true, "set write queue nums");
         opt.setRequired(false);
         options.addOption(opt);
 
+        // 队列权限
         opt = new Option("p", "perm", true, "set topic's permission(2|4|6), intro[2:W 4:R; 6:RW]");
         opt.setRequired(false);
         options.addOption(opt);
 
+        // 是否顺序消息
         opt = new Option("o", "order", true, "set topic's order(true|false)");
         opt.setRequired(false);
         options.addOption(opt);

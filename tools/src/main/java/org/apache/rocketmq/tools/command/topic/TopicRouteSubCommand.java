@@ -39,6 +39,62 @@ public class TopicRouteSubCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 访问namesrv，返回路由信息
+         * [root@localhost bin]# ./mqadmin topicRoute -n 10.110.104.105:9876 -t acc_charging_mq_aiparkcity
+         *
+         * {
+         *         "brokerDatas":[
+         *                 {
+         *                         "brokerAddrs":{0:"10.110.104.106:10911",1:"10.110.104.107:10920"
+         *                         },
+         *                         "brokerName":"broker-b",
+         *                         "cluster":"aipark-zjk-acb",
+         *                         "enableActingMaster":false
+         *                 },
+         *                 {
+         *                         "brokerAddrs":{0:"10.110.104.107:10911",1:"10.110.104.105:10920"
+         *                         },
+         *                         "brokerName":"broker-c",
+         *                         "cluster":"aipark-zjk-acb",
+         *                         "enableActingMaster":false
+         *                 },
+         *                 {
+         *                         "brokerAddrs":{0:"10.110.104.105:10911",1:"10.110.104.106:10920"
+         *                         },
+         *                         "brokerName":"broker-a",
+         *                         "cluster":"aipark-zjk-acb",
+         *                         "enableActingMaster":false
+         *                 }
+         *         ],
+         *         "filterServerTable":{},
+         *         "queueDatas":[
+         *                 {
+         *                         "brokerName":"broker-b",
+         *                         "perm":6,
+         *                         "readQueueNums":8,
+         *                         "topicSysFlag":0,
+         *                         "writeQueueNums":8
+         *                 },
+         *                 {
+         *                         "brokerName":"broker-c",
+         *                         "perm":6,
+         *                         "readQueueNums":8,
+         *                         "topicSysFlag":0,
+         *                         "writeQueueNums":8
+         *                 },
+         *                 {
+         *                         "brokerName":"broker-a",
+         *                         "perm":6,
+         *                         "readQueueNums":8,
+         *                         "topicSysFlag":0,
+         *                         "writeQueueNums":8
+         *                 }
+         *         ]
+         * }
+         *
+         */
         Option opt = new Option("t", "topic", true, "topic name");
         opt.setRequired(true);
         options.addOption(opt);

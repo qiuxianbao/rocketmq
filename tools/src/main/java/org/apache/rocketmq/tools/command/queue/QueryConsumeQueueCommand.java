@@ -59,6 +59,14 @@ public class QueryConsumeQueueCommand implements SubCommand {
         opt.setRequired(true);
         options.addOption(opt);
 
+        /**
+         * 如果没有指定-b选项，则选择topic路由表中第一个broker地址
+         * 发送 {@link org.apache.rocketmq.common.protocol.RequestCode#QUERY_CONSUME_QUEUE}
+         *
+         * broker返回该消息消费队列最大最小偏移量；
+         * 如果消息消费组不为空，则返回该消息消费组的订阅信息；如果订阅信息不为空，则返回过滤器信息；
+         * 然后返回查询到的消息消费条目（物理偏移量、消息长度、TAG HashCode）
+         */
         opt = new Option("q", "queue", true, "queue num, ie. 1");
         opt.setRequired(true);
         options.addOption(opt);

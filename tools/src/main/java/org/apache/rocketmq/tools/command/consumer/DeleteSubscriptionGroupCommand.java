@@ -21,6 +21,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.rocketmq.common.MixAll;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.srvutil.ServerUtil;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
@@ -46,6 +47,10 @@ public class DeleteSubscriptionGroupCommand implements SubCommand {
         opt.setRequired(false);
         options.addOption(opt);
 
+        /**
+         * 如果-b为空，会依次从namesrv根据集群名称获取集群下所有的master
+         * 根据-b -c定位到broker地址，发送 {@link RequestCode#DELETE_SUBSCRIPTIONGROUP}
+         */
         opt = new Option("c", "clusterName", true, "delete subscription group from which cluster");
         opt.setRequired(false);
         options.addOption(opt);

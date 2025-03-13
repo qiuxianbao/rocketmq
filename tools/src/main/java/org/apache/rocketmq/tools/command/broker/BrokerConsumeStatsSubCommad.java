@@ -66,6 +66,24 @@ public class BrokerConsumeStatsSubCommad implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 根据boker上的订阅消息组反推出所有消息组订阅的主题
+         * 然后统计各消费组在该broker上消息消费队列的消息消费进度
+         *
+         * [root@localhost bin]# ./mqadmin brokerConsumeStats -n 10.110.104.105:9876 -b 10.110.104.105:10911
+         *
+         * #Broker Offset，Broker消息消费队列当前偏移量
+         * #Consumer Offset，该消息消费组当前消息消费进度
+         * #Diff，Broker Offset - Consumer Offset，消息滞留条数
+         *
+         * #Topic                                                            #Group                                                            #Broker Name                      #QID  #Broker Offset        #Consumer Offset      #Diff                 #LastTime
+         * acc_refund_mq_aiparkcity                                          GID_acc_park_order_acs_aiparkcity                                 broker-a                          0     39                    39                    0                     2025-02-20 16:15:02
+         * acc_refund_mq_aiparkcity                                          GID_acc_park_order_acs_aiparkcity                                 broker-a                          1     33                    33                    0                     2025-02-20 16:15:02
+         * acc_refund_mq_aiparkcity                                          GID_acc_park_order_acs_aiparkcity                                 broker-a                          2     34                    34                    0                     2025-03-07 15:01:17
+         * ...
+         *
+         */
         Option opt = new Option("b", "brokerAddr", true, "Broker address");
         opt.setRequired(true);
         options.addOption(opt);

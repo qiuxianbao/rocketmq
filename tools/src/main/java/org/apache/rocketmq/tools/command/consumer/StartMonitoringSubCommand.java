@@ -19,6 +19,7 @@ package org.apache.rocketmq.tools.command.consumer;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.rocketmq.client.log.ClientLogger;
+import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.tools.command.SubCommand;
@@ -48,6 +49,11 @@ public class StartMonitoringSubCommand implements SubCommand {
     @Override
     public void execute(CommandLine commandLine, Options options, RPCHook rpcHook) throws SubCommandException {
         try {
+
+            /**
+             * 创建一个消息消费者 订阅 {@link MixAll#OFFSET_MOVED_EVENT} 系统主题
+             * 该主题下的消息为被删除的消息，当该主题下有消息到达后报告消息的信息，同时会开启一个定时调度任务，重点关注消息重试的信息
+             */
             MonitorService monitorService =
                 new MonitorService(new MonitorConfig(), new DefaultMonitorListener(), rpcHook);
 

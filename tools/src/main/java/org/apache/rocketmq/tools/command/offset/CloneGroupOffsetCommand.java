@@ -43,6 +43,10 @@ public class CloneGroupOffsetCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 将源消息消费组进度复制到目的消息组进度，用源消息组消费进度更新目的消息组消费进度
+         */
         Option opt = new Option("s", "srcGroup", true, "set source consumer group");
         opt.setRequired(true);
         options.addOption(opt);

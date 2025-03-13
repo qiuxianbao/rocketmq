@@ -113,6 +113,10 @@ public class PrintMessageByQueueCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 根据主题，broker名称、消息消费队列构建MessageQueue对象，从消息服务器根据拉取偏移量循环从服务器拉取消息
+         */
         Option opt = new Option("t", "topic", true, "topic name");
         opt.setRequired(true);
         options.addOption(opt);
@@ -121,6 +125,7 @@ public class PrintMessageByQueueCommand implements SubCommand {
         opt.setRequired(true);
         options.addOption(opt);
 
+        // 消息队列ID
         opt = new Option("i", "queueId ", true, "queue id");
         opt.setRequired(true);
         options.addOption(opt);

@@ -80,6 +80,10 @@ import org.apache.rocketmq.tools.command.topic.UpdateTopicPermSubCommand;
 import org.apache.rocketmq.tools.command.topic.UpdateTopicSubCommand;
 import org.slf4j.LoggerFactory;
 
+/**
+ * MQ运维命令行工具
+ * 可以通过 ./mqadmin [command] -h 查看帮助
+ */
 public class MQAdminStartup {
     protected static List<SubCommand> subCommandList = new ArrayList<SubCommand>();
 
@@ -148,59 +152,99 @@ public class MQAdminStartup {
     }
 
     public static void initCommand() {
+        // 创建或更新主题
         initCommand(new UpdateTopicSubCommand());
+        // 删除主题
         initCommand(new DeleteTopicSubCommand());
+        // 创建或更新消息费配置信息
         initCommand(new UpdateSubGroupSubCommand());
+        // 删除消费组配置信息
         initCommand(new DeleteSubscriptionGroupCommand());
+        // 更新broker配置信息
         initCommand(new UpdateBrokerConfigSubCommand());
+        // 更新topic的读写权限
         initCommand(new UpdateTopicPermSubCommand());
 
+        // 查看topic路由
         initCommand(new TopicRouteSubCommand());
+        // 查看topic的状态（消息消费队列状态）
         initCommand(new TopicStatusSubCommand());
+        // 获取topic所在broker集群信息
         initCommand(new TopicClusterSubCommand());
 
+        // 获取broker的状态
         initCommand(new BrokerStatusSubCommand());
+        // 根据消息id查询消息
         initCommand(new QueryMsgByIdSubCommand());
+        // 根据消息索引键查询消息
         initCommand(new QueryMsgByKeySubCommand());
+        // 根据唯一键查询消息
         initCommand(new QueryMsgByUniqueKeySubCommand());
         initCommand(new QueryMsgByOffsetSubCommand());
 
+        // 打印消息
         initCommand(new PrintMessageSubCommand());
+        // 根据消息队列打印消息
         initCommand(new PrintMessageByQueueCommand());
+        // 测试broker消息发送性能
         initCommand(new SendMsgStatusCommand());
+        // 查看broker消费进度
         initCommand(new BrokerConsumeStatsSubCommad());
 
         initCommand(new ProducerConnectionSubCommand());
+        // 查看消息消费者的连接信息
         initCommand(new ConsumerConnectionSubCommand());
+        // 查看消费组处理进度（消息消费进度）
         initCommand(new ConsumerProgressSubCommand());
+        // 查看消息消费组内部线程状态
         initCommand(new ConsumerStatusSubCommand());
+        // 克隆消费组进度
         initCommand(new CloneGroupOffsetCommand());
 
+        // 查看namesrv集群下的broker的运行状态
         initCommand(new ClusterListSubCommand());
+        // 查看所有的topic主题信息
         initCommand(new TopicListSubCommand());
 
+        // 更新namesrv的KV配置
         initCommand(new UpdateKvConfigCommand());
+        // 删除namesrv的KV配置
         initCommand(new DeleteKvConfigCommand());
 
+        // 擦除broker的写权限
         initCommand(new WipeWritePermSubCommand());
+        // 重置消息消费组消费进度
         initCommand(new ResetOffsetByTimeCommand());
 
+        // 创建、更新、删除顺序消息的KV配置
         initCommand(new UpdateOrderConfCommand());
+        // 删除过期消息消费队列文件
         initCommand(new CleanExpiredCQSubCommand());
+        // 删除未使用的topic
         initCommand(new CleanUnusedTopicCommand());
 
+        // 开启RocketMQ监控
         initCommand(new StartMonitoringSubCommand());
+        // 打印主题与消费组的统计信息
         initCommand(new StatsAllSubCommand());
 
+        // 查看消费队列负载情况
         initCommand(new AllocateMQSubCommand());
 
+        // 检查消息发送的响应时间
+        // Response Time
         initCommand(new CheckMsgSendRTCommand());
+        // 测试集群消息发送的响应时间
         initCommand(new CLusterSendMsgRTCommand());
 
+        // 获取namesrv配置
         initCommand(new GetNamesrvConfigCommand());
+        // 更新namesrv配置
         initCommand(new UpdateNamesrvConfigCommand());
+        // 获取broker配置信息
         initCommand(new GetBrokerConfigCommand());
 
+        // 查询消息消费进度
         initCommand(new QueryConsumeQueueCommand());
         initCommand(new SendMessageCommand());
         initCommand(new ConsumeMessageCommand());

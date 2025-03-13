@@ -17,15 +17,6 @@
 
 package org.apache.rocketmq.tools.monitor;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Random;
-import java.util.TreeMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import org.apache.rocketmq.client.consumer.DefaultMQPullConsumer;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.PullResult;
@@ -40,7 +31,6 @@ import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.common.ThreadFactoryImpl;
 import org.apache.rocketmq.common.admin.ConsumeStats;
 import org.apache.rocketmq.common.admin.OffsetWrapper;
-import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.body.Connection;
@@ -48,9 +38,17 @@ import org.apache.rocketmq.common.protocol.body.ConsumerConnection;
 import org.apache.rocketmq.common.protocol.body.ConsumerRunningInfo;
 import org.apache.rocketmq.common.protocol.body.TopicList;
 import org.apache.rocketmq.common.protocol.topic.OffsetMovedEvent;
+import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 
 public class MonitorService {
     private final InternalLogger log = ClientLogger.getLog();
@@ -192,6 +190,11 @@ public class MonitorService {
         log.info("Execute one round monitor work, spent timemills: {}", spentTimeMills);
     }
 
+    /**
+     * 消息消费重试时调用
+     *
+     * @param consumerGroup
+     */
     private void reportUndoneMsgs(final String consumerGroup) {
         ConsumeStats cs = null;
         try {
@@ -241,10 +244,20 @@ public class MonitorService {
         }
     }
 
+    /**
+     * 报告消息消费者运行状态
+     * 消息消费重试时被调用
+     *
+     * @param consumerGroup
+     * @throws InterruptedException
+     * @throws MQBrokerException
+     * @throws RemotingException
+     * @throws MQClientException
+     */
     public void reportConsumerRunningInfo(final String consumerGroup) throws InterruptedException,
         MQBrokerException, RemotingException, MQClientException {
         ConsumerConnection cc = defaultMQAdminExt.examineConsumerConnectionInfo(consumerGroup);
-        TreeMap<String, ConsumerRunningInfo> infoMap = new TreeMap<String, ConsumerRunningInfo>();
+        TreeMap<String /*clientId*/, ConsumerRunningInfo /*criTable*/> infoMap = new TreeMap<String, ConsumerRunningInfo>();
         for (Connection c : cc.getConnectionSet()) {
             String clientId = c.getClientId();
 
@@ -316,6 +329,11 @@ public class MonitorService {
         undoneMsgs.setUndoneMsgsDelayTimeMills(delayMax);
     }
 
+    /**
+     * 消息发送失败时调用
+     * @param consumerGroup
+     * @param topic
+     */
     private void reportFailedMsgs(final String consumerGroup, final String topic) {
 
     }

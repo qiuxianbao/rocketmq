@@ -20,6 +20,7 @@ import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.rocketmq.tools.command.SubCommand;
@@ -39,6 +40,13 @@ public class TopicClusterSubCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 向namesrv发送 {@link RequestCode#GET_BROKER_CLUSTER_INFO} 获取topic的集群信息
+         *
+         * [root@localhost bin]# ./mqadmin topicClusterList -n 10.110.104.105:9876 -t acc_charging_mq_aiparkcity
+         * aipark-zjk-acb
+         */
         Option opt = new Option("t", "topic", true, "topic name");
         opt.setRequired(true);
         options.addOption(opt);

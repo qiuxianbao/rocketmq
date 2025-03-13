@@ -70,6 +70,7 @@ public class NamesrvController {
 
     /**
      * netty服务端配置
+     * {@link NamesrvController#initialize()}
      */
     private RemotingServer remotingServer;
 

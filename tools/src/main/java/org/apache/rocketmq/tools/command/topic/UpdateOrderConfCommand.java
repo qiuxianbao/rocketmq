@@ -21,6 +21,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.namesrv.NamesrvUtil;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.srvutil.ServerUtil;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
@@ -49,6 +50,12 @@ public class UpdateOrderConfCommand implements SubCommand {
         opt.setRequired(false);
         options.addOption(opt);
 
+        /**
+         * 向namesrv发送命令更新、删除或查询该主题的配置信息（顺序消息）
+         * {@link RequestCode#PUT_KV_CONFIG}
+         * {@link RequestCode#DELETE_KV_CONFIG}
+         * {@link RequestCode#GET_KV_CONFIG}
+         */
         opt = new Option("m", "method", true, "option type [eg. put|get|delete");
         opt.setRequired(true);
         options.addOption(opt);

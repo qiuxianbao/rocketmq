@@ -21,6 +21,7 @@ import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.srvutil.ServerUtil;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
@@ -46,6 +47,11 @@ public class UpdateBrokerConfigSubCommand implements SubCommand {
         opt.setRequired(false);
         options.addOption(opt);
 
+        /**
+         * 根据-b，-c定位到broker地址，然后发送 {@link RequestCode#UPDATE_BROKER_CONFIG} 到broker服务器
+         * 如果-k指定的配置已经配置，则更新，否则忽略本次更新
+         * 配置更新后将持久化到配置文件中
+         */
         opt = new Option("c", "clusterName", true, "update which cluster");
         opt.setRequired(false);
         options.addOption(opt);

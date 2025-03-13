@@ -57,7 +57,7 @@ public class RequestCode {
     /**
      * 主题
      */
-    // 更新并创建主
+    // 更新并创建主题
     public static final int UPDATE_AND_CREATE_TOPIC = 17;
 
 
@@ -280,7 +280,7 @@ public class RequestCode {
     // 从客户端获取消费者状态
     public static final int GET_CONSUMER_STATUS_FROM_CLIENT = 221;
 
-    //
+    // 重置消费进度
     public static final int INVOKE_BROKER_TO_RESET_OFFSET = 222;
 
     public static final int INVOKE_BROKER_TO_GET_CONSUMER_STATUS = 223;
@@ -299,6 +299,7 @@ public class RequestCode {
     public static final int GET_SYSTEM_TOPIC_LIST_FROM_NS = 304;
     public static final int GET_SYSTEM_TOPIC_LIST_FROM_BROKER = 305;
 
+    // 删除过期消息消费队列文件
     public static final int CLEAN_EXPIRED_CONSUMEQUEUE = 306;
 
     public static final int GET_CONSUMER_RUNNING_INFO = 307;

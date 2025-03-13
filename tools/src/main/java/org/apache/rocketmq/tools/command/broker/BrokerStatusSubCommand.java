@@ -24,6 +24,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.rocketmq.client.exception.MQBrokerException;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.common.protocol.body.KVTable;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.remoting.exception.RemotingConnectException;
@@ -48,6 +49,19 @@ public class BrokerStatusSubCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 根据-b或-c定位到broker地址并发送 {@link RequestCode#GET_BROKER_RUNTIME_INFO} 命令，获取broker运行状态
+         * [root@localhost bin]# ./mqadmin brokerStatus -n 10.110.104.105:9876 -c aipark-zjk-acb
+         *
+         * 10.110.104.106:10920     EndTransactionQueueSize         : 0
+         * 10.110.104.106:10920     EndTransactionThreadPoolQueueCapacity: 100000
+         * 10.110.104.106:10920     bootTimestamp                   : 1734574350783
+         * 10.110.104.106:10920     brokerActive                    : false
+         * 10.110.104.106:10920     brokerVersion                   : 439
+         * ...
+         *
+         */
         Option opt = new Option("b", "brokerAddr", true, "Broker address");
         opt.setRequired(false);
         options.addOption(opt);

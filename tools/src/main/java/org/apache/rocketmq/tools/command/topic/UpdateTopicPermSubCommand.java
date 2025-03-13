@@ -25,6 +25,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.common.TopicConfig;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.common.protocol.route.BrokerData;
 import org.apache.rocketmq.common.protocol.route.QueueData;
 import org.apache.rocketmq.common.protocol.route.TopicRouteData;
@@ -53,6 +54,9 @@ public class UpdateTopicPermSubCommand implements SubCommand {
         opt.setRequired(false);
         options.addOption(opt);
 
+        /**
+         * 根据-b，-c定位到broker地址，然后发送 {@link RequestCode#UPDATE_AND_CREATE_TOPIC}
+         */
         opt = new Option("c", "clusterName", true, "create topic to which cluster");
         opt.setRequired(false);
         options.addOption(opt);

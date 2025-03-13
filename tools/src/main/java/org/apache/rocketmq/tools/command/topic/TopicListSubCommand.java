@@ -16,9 +16,6 @@
  */
 package org.apache.rocketmq.tools.command.topic;
 
-import java.util.Iterator;
-import java.util.Map.Entry;
-import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -36,6 +33,10 @@ import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.rocketmq.tools.command.SubCommand;
 import org.apache.rocketmq.tools.command.SubCommandException;
 
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
+
 public class TopicListSubCommand implements SubCommand {
 
     @Override
@@ -50,6 +51,23 @@ public class TopicListSubCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 查看topic列表
+         *
+         * [root@localhost bin]# ./mqadmin topicList -n 10.110.104.105:9876
+         *
+         * flow_mq_aiparkcity
+         * coupon_mq_aiparkcity
+         * %RETRY%GID_coupon_spss_aiparkcity
+         * %RETRY%GID_parkappointment_spss_aiparkcity
+         * %RETRY%GID_equipstatus_alarm_aiparkcity
+         * %RETRY%GID_payment_acs_aiparkcity
+         * %DLQ%GID_uorder_order_aiparkcity
+         * fusionParkRecord_mq_aiparkcity
+         * notice_mq_aiparkcity
+         * ...
+         */
         Option opt = new Option("c", "clusterModel", false, "clusterModel");
         opt.setRequired(false);
         options.addOption(opt);

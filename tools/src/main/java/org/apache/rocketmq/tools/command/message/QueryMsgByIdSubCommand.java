@@ -181,6 +181,14 @@ public class QueryMsgByIdSubCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        // 该命令集合了消息发送、消息查询、消息消费3个功能
+
+        /**
+         * 查询消息
+         * 消息id
+         *
+         */
         Option opt = new Option("i", "msgId", true, "Message Id");
         opt.setRequired(true);
         options.addOption(opt);
@@ -189,10 +197,14 @@ public class QueryMsgByIdSubCommand implements SubCommand {
         opt.setRequired(false);
         options.addOption(opt);
 
+        // 消费消息
+        // 消息消费者ID，其主要作用是指定消费者组内-指定的消息消费者消费该消息
         opt = new Option("d", "clientId", true, "The consumer's client id");
         opt.setRequired(false);
         options.addOption(opt);
 
+        // 发送消息
+        // 如果为true，表示再次发送该消息
         opt = new Option("s", "sendMessage", true, "resend message");
         opt.setRequired(false);
         options.addOption(opt);

@@ -25,51 +25,139 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 
-// TODO-QIU: 2024年3月29日, 0029
+
+/**
+ * broker属性配置
+ */
 public class BrokerConfig {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
 
-    // 环境变量 Environment variables
+    /**
+     * RocketMQ主目录，默认为用户主目录
+     * 环境变量 Environment variables
+     */
     private String rocketmqHome = System.getProperty(MixAll.ROCKETMQ_HOME_PROPERTY, System.getenv(MixAll.ROCKETMQ_HOME_ENV));
+
+    /**
+     * namesrv地址
+     */
     @ImportantField
     private String namesrvAddr = System.getProperty(MixAll.NAMESRV_ADDR_PROPERTY, System.getenv(MixAll.NAMESRV_ADDR_ENV));
+
+    /**
+     * broker服务地址
+     */
     @ImportantField
     private String brokerIP1 = RemotingUtil.getLocalAddress();
+
+    /**
+     * broker HA IP地址，供slave同步消息的地址
+     */
     private String brokerIP2 = RemotingUtil.getLocalAddress();
+
+    /**
+     * broker名称
+     * 默认为服务器的hostname
+     */
     @ImportantField
     private String brokerName = localHostName();
+
+    /**
+     * broker集群名称
+     */
     @ImportantField
     private String brokerClusterName = "DefaultCluster";
+
+    /**
+     * brokerId，
+     * 0表示主节点，大于0表示从节点
+     */
     @ImportantField
     private long brokerId = MixAll.MASTER_ID;
+
+    /**
+     * broker权限
+     * 默认为6，表示可读可写
+     */
     private int brokerPermission = PermName.PERM_READ | PermName.PERM_WRITE;
+
+    /**
+     * 主题在一个broker上创建的队列数量
+     * 默认为8
+     */
     private int defaultTopicQueueNums = 8;
+
+    /**
+     * 是否自动创建主题
+     * 默认为true
+     */
     @ImportantField
     private boolean autoCreateTopicEnable = true;
 
+    /**
+     * 集群名称是否可用在主题使用
+     */
     private boolean clusterTopicEnable = true;
 
+    /**
+     * broker名称是否用作主题使用
+     */
     private boolean brokerTopicEnable = true;
 
-    // 自动创建订阅组
+    /**
+     * 是否自动创建消费组/订阅组
+     * 默认为为true
+     */
     @ImportantField
     private boolean autoCreateSubscriptionGroup = true;
+
+    /**
+     * 消息存储插件地址
+     */
     private String messageStorePlugIn = "";
+
     @ImportantField
     private String msgTraceTopicName = MixAll.RMQ_SYS_TRACE_TOPIC;
+
+    /**
+     * 消息追踪
+     * 默认为false
+     */
     @ImportantField
     private boolean traceTopicEnable = false;
+
     /**
+     * 服务端处理消息发送线程池线程数量
      * thread numbers for send message thread pool, since spin lock will be used by default since 4.0.x, the default
      * value is 1.
      */
     private int sendMessageThreadPoolNums = 1; //16 + Runtime.getRuntime().availableProcessors() * 4;
+
+    /**
+     * 服务端处理查询消息拉取线程线程池数量
+     */
     private int pullMessageThreadPoolNums = 16 + Runtime.getRuntime().availableProcessors() * 2;
     private int processReplyMessageThreadPoolNums = 16 + Runtime.getRuntime().availableProcessors() * 2;
+
+    /**
+     * 服务端处理查询消息线程池线程数量
+     */
     private int queryMessageThreadPoolNums = 8 + Runtime.getRuntime().availableProcessors();
 
+    /**
+     * 服务端处理控制台管理命令
+     * 线程池线程数量
+     */
     private int adminBrokerThreadPoolNums = 16;
+
+    /**
+     * 服务端处理客户端管理（心跳、注册、取消注册）线程池线程数量
+     */
     private int clientManageThreadPoolNums = 32;
+
+    /**
+     * 服务端处理消费管理（获取消费者列表、更新消费进度、查询消费进度）线程池线程数量
+     */
     private int consumerManageThreadPoolNums = 32;
     private int heartbeatThreadPoolNums = Math.min(32, Runtime.getRuntime().availableProcessors());
 
@@ -78,30 +166,76 @@ public class BrokerConfig {
      */
     private int endTransactionThreadPoolNums = 8 + Runtime.getRuntime().availableProcessors() * 2;
 
+    /**
+     * 持久化消息消费进度（consumerOffset.json）文件的频率
+     */
     private int flushConsumerOffsetInterval = 1000 * 5;
 
     private int flushConsumerOffsetHistoryInterval = 1000 * 60;
 
+    /**
+     * 是否拒绝事务消息
+     * 默认为false
+     */
     @ImportantField
     private boolean rejectTransactionMessage = false;
+
+    /**
+     * 是否支持从服务器获取namesrv地址
+     */
     @ImportantField
     private boolean fetchNamesrvAddrByAddressServer = false;
-    // 队列默认大小
+
+    /**
+     * 消息发送线程池任务队列初始化大小
+     * 默认为1W
+     */
     private int sendThreadPoolQueueCapacity = 10000;
+
+    /**
+     * 消息拉取线程池任务队列初始化大小
+     */
     private int pullThreadPoolQueueCapacity = 100000;
     private int replyThreadPoolQueueCapacity = 10000;
+
+    /**
+     * 查询消息线程池队列初始化大小
+     */
     private int queryThreadPoolQueueCapacity = 20000;
+
+    /**
+     * 客户端管理线程池队列初始化大小
+     */
     private int clientManagerThreadPoolQueueCapacity = 1000000;
+
+    /**
+     * 消费管理线程池队列初始化大小
+     */
     private int consumerManagerThreadPoolQueueCapacity = 1000000;
     private int heartbeatThreadPoolQueueCapacity = 50000;
     private int endTransactionPoolQueueCapacity = 100000;
 
+    /**
+     * broker服务器过滤服务器数量
+     */
     private int filterServerNums = 0;
 
+    /**
+     * 是否开启长轮询
+     * 默认为true
+     */
     private boolean longPollingEnable = true;
 
+    /**
+     * 短轮询等待时间
+     * 默认为1s
+     */
     private long shortPollingTimeMills = 1000;
 
+    /**
+     * 消费者数量变化后是否立即通知 rebalance 线程 {@link org.apache.rocketmq.client.impl.consumer.RebalanceImpl}
+     * 以便进行消息队列重新负载
+     */
     private boolean notifyConsumerIdsChangedEnable = true;
 
     private boolean highSpeedMode = false;
@@ -112,22 +246,64 @@ public class BrokerConfig {
     private int commercialBigCount = 1;
     private int commercialBaseCount = 1;
 
+    /**
+     * 消息传输是否使用堆内存
+     * 默认为true
+     */
     private boolean transferMsgByHeap = true;
     private int maxDelayTime = 40;
 
+    /**
+     * 消息区域
+     */
     private String regionId = MixAll.DEFAULT_TRACE_REGION_ID;
 
-    // 注册Broker的超时时间是6s
+    /**
+     * 注册Broker的超时时间，默认是6s
+     */
     private int registerBrokerTimeoutMills = 6000;
 
+    /**
+     * 从节点是否可读
+     * 默认为false
+     */
     private boolean slaveReadEnable = false;
 
+    /**
+     * 如果消费组消息消费堆积
+     * 是否禁用该消费组继续消费消息
+     */
     private boolean disableConsumeIfConsumerReadSlowly = false;
+
+    /**
+     * 消息消费堆阈值
+     * 默认为16G
+     *
+     * 在disableConsumeIfConsumerReadSlowly为true时生效
+     */
     private long consumerFallbehindThreshold = 1024L * 1024 * 1024 * 16;
 
-    // 快速失败
+    /**
+     * 是否支持broker快速失败
+     * 默认为true
+     *
+     * 如果是true表示会立即清除消息发送线程池
+     * 消息拉取线程池中排队任务，直接返回系统错误
+     */
     private boolean brokerFastFailureEnable = true;
+
+    /**
+     * 清除发送线程池任务等待时间
+     * 如果系统时间 - 任务放入队列中的时间 < waitTimeMillsInSendQueue，本次请求任务暂不移除
+     * 默认为200ms
+     */
     private long waitTimeMillsInSendQueue = 200;
+
+    /**
+     * 清除消息拉取线程池任务队列的等待时间
+     * 如果系统时间 - 任务放入队列中的时间 < waitTimeMillsInPullQueue，本次请求任务暂不移除
+     * 默认为5s
+     */
     private long waitTimeMillsInPullQueue = 5 * 1000;
     private long waitTimeMillsInHeartbeatQueue = 31 * 1000;
     private long waitTimeMillsInTransactionQueue = 3 * 1000;
@@ -148,11 +324,23 @@ public class BrokerConfig {
     // Error rate of bloom filter, 1~100.
     private int maxErrorRateOfBloomFilter = 20;
 
+    /**
+     * 清除过滤数据的时间间隔
+     * 默认为24h
+     */
     //how long to clean filter data after dead.Default: 24h
     private long filterDataCleanTimeSpan = 24 * 3600 * 1000;
 
+    /**
+     * 消息过滤是否支持重试
+     */
     // whether do filter when retry.
     private boolean filterSupportRetry = false;
+
+    /**
+     * 是否支持根据属性过滤，默认为false
+     * 如果使用基于标准SQL92模式过滤消息，需要设置该值为true
+     */
     private boolean enablePropertyFilter = false;
 
     private boolean compressedRegister = false;

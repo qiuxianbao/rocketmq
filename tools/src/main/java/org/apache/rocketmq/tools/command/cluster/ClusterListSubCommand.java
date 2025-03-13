@@ -49,6 +49,17 @@ public class ClusterListSubCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * [root@localhost bin]# ./mqadmin clusterList -n 10.110.104.105:9876
+         * #Cluster Name           #Broker Name            #BID  #Addr                  #Version              #InTPS(LOAD)     #OutTPS(LOAD)  #Timer(Progress)        #PCWait(ms)  #Hour         #SPACE    #ACTIVATED
+         * aipark-zjk-acb          broker-a                0     10.110.104.105:10911   V5_1_3                 0.00(0,0ms)       0.80(0,0ms)  0-0(0.0w, 0.0, 0.0)               0  764.60        0.1000          true
+         * aipark-zjk-acb          broker-a                1     10.110.104.106:10920   V5_1_3                 0.00(0,0ms)       0.00(0,0ms)  2-0(0.0w, 0.0, 0.0)               0  764.60        0.1000         false
+         * aipark-zjk-acb          broker-b                0     10.110.104.106:10911   V5_1_3                 0.10(0,0ms)       1.30(0,0ms)  0-0(0.0w, 0.0, 0.0)               0  763.27        0.1000          true
+         * aipark-zjk-acb          broker-b                1     10.110.104.107:10920   V5_1_3                 0.10(0,0ms)       0.00(0,0ms)  3-0(0.0w, 0.0, 0.0)               0  763.27        0.0200         false
+         * aipark-zjk-acb          broker-c                0     10.110.104.107:10911   V5_1_3                 0.10(0,0ms)       1.00(0,0ms)  0-0(0.0w, 0.0, 0.0)               0  763.22        0.0200          true
+         * aipark-zjk-acb          broker-c                1     10.110.104.105:10920   V5_1_3                 0.10(0,0ms)       0.00(0,0ms)  1-0(0.0w, 0.0, 0.0)               0  763.22        0.1000         false
+         */
         Option opt = new Option("m", "moreStats", false, "Print more stats");
         opt.setRequired(false);
         options.addOption(opt);

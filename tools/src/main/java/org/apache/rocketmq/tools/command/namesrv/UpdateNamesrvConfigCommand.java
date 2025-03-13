@@ -23,6 +23,7 @@ import java.util.Properties;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+import org.apache.rocketmq.common.protocol.RequestCode;
 import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.rocketmq.tools.command.SubCommand;
@@ -41,6 +42,10 @@ public class UpdateNamesrvConfigCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(final Options options) {
+
+        /**
+         * 向namesrv发送 {@link RequestCode#UPDATE_NAMESRV_CONFIG}
+         */
         Option opt = new Option("k", "key", true, "config key");
         opt.setRequired(true);
         options.addOption(opt);

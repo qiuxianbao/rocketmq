@@ -16,9 +16,6 @@
  */
 package org.apache.rocketmq.tools.command.topic;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -31,6 +28,10 @@ import org.apache.rocketmq.tools.admin.DefaultMQAdminExt;
 import org.apache.rocketmq.tools.command.CommandUtil;
 import org.apache.rocketmq.tools.command.SubCommand;
 import org.apache.rocketmq.tools.command.SubCommandException;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class DeleteTopicSubCommand implements SubCommand {
     public static void deleteTopic(final DefaultMQAdminExt adminExt,
@@ -64,10 +65,15 @@ public class DeleteTopicSubCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+        // 主题名称
         Option opt = new Option("t", "topic", true, "topic name");
         opt.setRequired(true);
         options.addOption(opt);
 
+        /**
+         * 从namesrv获取当前所有broker，依次发送 {@link org.apache.rocketmq.common.protocol.RequestCode.DELETE_TOPIC_IN_NAMESRV}，从broker中删除topic配置信息
+         * 然后通过与namesrv心跳机制更新namesrv关于主题的路由信息
+         */
         opt = new Option("c", "clusterName", true, "delete topic from which cluster");
         opt.setRequired(true);
         options.addOption(opt);

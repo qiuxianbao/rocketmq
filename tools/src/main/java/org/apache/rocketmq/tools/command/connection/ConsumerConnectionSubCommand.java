@@ -44,6 +44,26 @@ public class ConsumerConnectionSubCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 构建消息消费组的重试主题（%RETRY%+消息消费组名）
+         * 从namesrv获取该主题的路由信息，从中选择一个broker，返回消息消费组内所有与broker建立的长连接信息
+         *
+         * [root@localhost bin]# ./mqadmin consumerConnection -n 10.110.104.105:9876 -g GID_acc_chargingDeviceData_aiparkcity
+         *
+         * #ClientId                                            #ClientAddr            #Language  #Version
+         * 10.110.104.101@9e34c3ff-43ba-45a3-b257-2088d23a3208  10.110.104.101:32798   JAVA       V4_0_0_SNAPSHOT
+         *
+         * Below is subscription:
+         * #Topic               #SubExpression
+         * flow_mq_aiparkcity   alarmRecord||flowAccOcrRecord
+         * %RETRY%GID_acc_chargingDeviceData_aiparkcity *
+         *
+         * ConsumeType: CONSUME_PASSIVELY
+         * MessageModel: CLUSTERING
+         * ConsumeFromWhere: CONSUME_FROM_FIRST_OFFSET
+         *
+         */
         Option opt = new Option("g", "consumerGroup", true, "consumer group name");
         opt.setRequired(true);
         options.addOption(opt);

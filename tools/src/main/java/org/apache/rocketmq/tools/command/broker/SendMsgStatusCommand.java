@@ -54,6 +54,15 @@ public class SendMsgStatusCommand implements SubCommand {
 
     @Override
     public Options buildCommandlineOptions(Options options) {
+
+        /**
+         * 模拟消息发送，向主题名为broker名称的主题发送消息，测试消息发送时间
+         *
+         * [root@localhost bin]# ./mqadmin sendMsgStatus -n 10.110.104.105:9876 -b broker-a -c 3
+         * rt=31ms, SendResult=SendResult [sendStatus=SEND_OK, msgId=C0A87A01F75C08EFB8463CD288860001, offsetMsgId=0A6E686900002A9F000000006E56EAD0, messageQueue=MessageQueue [topic=broker-a, brokerName=broker-a, queueId=0], queueOffset=1]
+         * rt=26ms, SendResult=SendResult [sendStatus=SEND_OK, msgId=C0A87A01F75C08EFB8463CD288A70002, offsetMsgId=0A6E686900002A9F000000006E56EC1E, messageQueue=MessageQueue [topic=broker-a, brokerName=broker-a, queueId=0], queueOffset=2]
+         * rt=18ms, SendResult=SendResult [sendStatus=SEND_OK, msgId=C0A87A01F75C08EFB8463CD288C20003, offsetMsgId=0A6E686900002A9F000000006E56ED6C, messageQueue=MessageQueue [topic=broker-a, brokerName=broker-a, queueId=0], queueOffset=3]
+         */
         Option opt = new Option("b", "brokerName", true, "Broker Name");
         opt.setRequired(true);
         options.addOption(opt);
