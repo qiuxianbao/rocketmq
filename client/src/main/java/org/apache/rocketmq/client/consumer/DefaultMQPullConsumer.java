@@ -35,6 +35,11 @@ import org.apache.rocketmq.remoting.RPCHook;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 
 /**
+ * 默认消息拉模式
+ *
+ * 消息拉模式，主要是由客户端手动调用消息拉取API
+ * 而消息推模式是消息服务器主动将消息推送到消息端
+ *
  * Default pulling consumer.
  * This class will be removed in 2022, and a better implementation {@link DefaultLitePullConsumer} is recommend to use
  * in the scenario of actively pulling messages.

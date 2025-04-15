@@ -25,8 +25,8 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 
 /**
  * Offset store interface
+ * 消息消费进度存储
  */
-// TODO-QIU: 2024年4月16日, 0016
 public interface OffsetStore {
     /**
      * Load

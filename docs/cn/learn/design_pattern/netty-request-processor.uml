@@ -7,7 +7,7 @@
   </nodes>
   <notes />
   <edges />
-  <settings layout="Hierarchic Compact" zoom="1.5000000000000002" showDependencies="false" x="67.49999999999994" y="135.50000000000017" />
+  <settings layout="Hierarchic Compact" zoom="1.0" showDependencies="false" x="49.0" y="19.0" />
   <SelectedNodes>
     <node>org.apache.rocketmq.remoting.netty.NettyRequestProcessor</node>
   </SelectedNodes>

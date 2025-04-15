@@ -47,12 +47,7 @@ import org.apache.rocketmq.client.impl.FindBrokerResult;
 import org.apache.rocketmq.client.impl.MQAdminImpl;
 import org.apache.rocketmq.client.impl.MQClientAPIImpl;
 import org.apache.rocketmq.client.impl.MQClientManager;
-import org.apache.rocketmq.client.impl.consumer.DefaultMQPullConsumerImpl;
-import org.apache.rocketmq.client.impl.consumer.DefaultMQPushConsumerImpl;
-import org.apache.rocketmq.client.impl.consumer.MQConsumerInner;
-import org.apache.rocketmq.client.impl.consumer.ProcessQueue;
-import org.apache.rocketmq.client.impl.consumer.PullMessageService;
-import org.apache.rocketmq.client.impl.consumer.RebalanceService;
+import org.apache.rocketmq.client.impl.consumer.*;
 import org.apache.rocketmq.client.impl.producer.DefaultMQProducerImpl;
 import org.apache.rocketmq.client.impl.producer.MQProducerInner;
 import org.apache.rocketmq.client.impl.producer.TopicPublishInfo;
@@ -103,6 +98,10 @@ public class MQClientInstance {
     private final ConcurrentMap<String/* group */, MQProducerInner> producerTable = new ConcurrentHashMap<String, MQProducerInner>();
 
 
+    /**
+     * 消费者实例
+     * group是consumerGroup消费者组
+     */
     private final ConcurrentMap<String/* group */, MQConsumerInner> consumerTable = new ConcurrentHashMap<String, MQConsumerInner>();
     private final ConcurrentMap<String/* group */, MQAdminExtInner> adminExtTable = new ConcurrentHashMap<String, MQAdminExtInner>();
     private final NettyClientConfig nettyClientConfig;
@@ -126,6 +125,10 @@ public class MQClientInstance {
         }
     });
     private final ClientRemotingProcessor clientRemotingProcessor;
+
+    /**
+     * {@link MQClientInstance#MQClientInstance(ClientConfig, int, String, RPCHook)}
+     */
     private final PullMessageService pullMessageService;
     private final RebalanceService rebalanceService;
     private final DefaultMQProducer defaultMQProducer;
@@ -157,8 +160,14 @@ public class MQClientInstance {
 
         this.mQAdminImpl = new MQAdminImpl(this);
 
+        /**
+         * 初始化
+         */
         this.pullMessageService = new PullMessageService(this);
 
+        /**
+         * 初始化
+         */
         this.rebalanceService = new RebalanceService(this);
 
         this.defaultMQProducer = new DefaultMQProducer(MixAll.CLIENT_INNER_PRODUCER_GROUP);
@@ -252,7 +261,18 @@ public class MQClientInstance {
         return mqList;
     }
 
-    // TODO-QIU: 2024年12月27日, 0027 消息消费时介绍
+    /**
+     * MqClientInstance 启动过程
+     *
+     * Invoked by bellow:
+     * {@link DefaultLitePullConsumerImpl#start()}
+     * {@link DefaultMQPullConsumerImpl#start()}
+     * {@link DefaultMQPushConsumerImpl#start()}
+     * {@link DefaultMQProducerImpl#start(boolean)}
+     * {@link org.apache.rocketmq.tools.admin.DefaultMQAdminExtImpl#start()}
+     *
+     * @throws MQClientException
+     */
     public void start() throws MQClientException {
 
         synchronized (this) {
@@ -263,14 +283,25 @@ public class MQClientInstance {
                     if (null == this.clientConfig.getNamesrvAddr()) {
                         this.mQClientAPIImpl.fetchNameServerAddr();
                     }
+
+                    // Netty网络配置（客户端）启动
                     // Start request-response channel
                     this.mQClientAPIImpl.start();
-                    // Start various schedule tasks，开启定时任务
+
+                    // 开启各种定时任务
+                    // Start various schedule tasks
                     this.startScheduledTask();
+
+                    // 拉取
                     // Start pull service
                     this.pullMessageService.start();
+
+                    // 重负载
                     // Start rebalance service
                     this.rebalanceService.start();
+
+                    // TODO-QIU: 2025年4月15日, 0015
+                    // 消费
                     // Start push service
                     this.defaultMQProducer.getDefaultMQProducerImpl().start(false);
                     log.info("the client factory [{}] start OK", this.clientId);
@@ -933,6 +964,12 @@ public class MQClientInstance {
         }
     }
 
+    /**
+     * 注册消费组
+     * @param group
+     * @param consumer
+     * @return
+     */
     public boolean registerConsumer(final String group, final MQConsumerInner consumer) {
         if (null == group || null == consumer) {
             return false;

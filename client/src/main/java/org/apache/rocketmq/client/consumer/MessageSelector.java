@@ -20,7 +20,7 @@ package org.apache.rocketmq.client.consumer;
 import org.apache.rocketmq.common.filter.ExpressionType;
 
 /**
- * 消息过滤
+ * 消息选择器
  *
  * Message selector: select message at server.
  * <p>

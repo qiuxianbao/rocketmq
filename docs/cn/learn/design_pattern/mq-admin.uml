@@ -3,16 +3,16 @@
   <ID>JAVA</ID>
   <OriginalElement>org.apache.rocketmq.client.producer.DefaultMQProducer</OriginalElement>
   <nodes>
-    <node x="258.0" y="486.0">org.apache.rocketmq.client.consumer.DefaultMQPushConsumer</node>
+    <node x="-31.5" y="306.0">org.apache.rocketmq.client.ClientConfig</node>
     <node x="-118.0" y="486.0">org.apache.rocketmq.client.producer.DefaultMQProducer</node>
-    <node x="324.5" y="126.0">org.apache.rocketmq.client.consumer.MQConsumer</node>
+    <node x="305.5" y="306.0">org.apache.rocketmq.client.consumer.MQPushConsumer</node>
+    <node x="258.0" y="486.0">org.apache.rocketmq.client.consumer.DefaultMQPushConsumer</node>
     <node x="151.0" y="246.0">org.apache.rocketmq.client.consumer.MQPullConsumer</node>
     <node x="-110.5" y="126.0">org.apache.rocketmq.client.producer.MQProducer</node>
-    <node x="-31.5" y="306.0">org.apache.rocketmq.client.ClientConfig</node>
-    <node x="63.5" y="426.0">org.apache.rocketmq.client.consumer.DefaultMQPullConsumer</node>
-    <node x="305.5" y="306.0">org.apache.rocketmq.client.consumer.MQPushConsumer</node>
-    <node x="-116.5" y="606.0">org.apache.rocketmq.client.producer.TransactionMQProducer</node>
     <node x="-100.5" y="-14.0">org.apache.rocketmq.client.MQAdmin</node>
+    <node x="63.5" y="426.0">org.apache.rocketmq.client.consumer.DefaultMQPullConsumer</node>
+    <node x="-116.5" y="606.0">org.apache.rocketmq.client.producer.TransactionMQProducer</node>
+    <node x="324.5" y="126.0">org.apache.rocketmq.client.consumer.MQConsumer</node>
   </nodes>
   <notes />
   <edges>
@@ -81,8 +81,10 @@
       <point x="0.0" y="14.0" />
     </edge>
   </edges>
-  <settings layout="Hierarchic Compact" zoom="1.0" showDependencies="false" x="204.0" y="334.0" />
-  <SelectedNodes />
+  <settings layout="Hierarchic Compact" zoom="1.0" showDependencies="false" x="269.5" y="213.0" />
+  <SelectedNodes>
+    <node>org.apache.rocketmq.client.MQAdmin</node>
+  </SelectedNodes>
   <Categories />
   <SCOPE>All</SCOPE>
   <VISIBILITY>private</VISIBILITY>
