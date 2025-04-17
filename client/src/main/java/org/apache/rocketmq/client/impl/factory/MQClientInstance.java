@@ -292,8 +292,11 @@ public class MQClientInstance {
                     // Start various schedule tasks
                     this.startScheduledTask();
 
-                    // 拉取
-                    // Start pull service
+                    /**
+                     * 拉取消息
+                     * 使用1个单独线程
+                     * {@link PullMessageService#run()}
+                     */
                     this.pullMessageService.start();
 
                     // 重负载
@@ -301,7 +304,6 @@ public class MQClientInstance {
                     this.rebalanceService.start();
 
                     // TODO-QIU: 2025年4月15日, 0015
-                    // 消费
                     // Start push service
                     this.defaultMQProducer.getDefaultMQProducerImpl().start(false);
                     log.info("the client factory [{}] start OK", this.clientId);

@@ -17,6 +17,9 @@
 
 package org.apache.rocketmq.common.filter;
 
+/**
+ * 消息过滤模式
+ */
 public class ExpressionType {
 
     /**

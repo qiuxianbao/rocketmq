@@ -30,6 +30,10 @@ public class ManyPullRequest {
         this.pullRequestList.addAll(many);
     }
 
+    /**
+     * 技巧：支持并发访问
+     * @return
+     */
     public synchronized List<PullRequest> cloneListAndClear() {
         if (!this.pullRequestList.isEmpty()) {
             List<PullRequest> result = (ArrayList<PullRequest>) this.pullRequestList.clone();

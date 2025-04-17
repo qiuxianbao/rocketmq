@@ -16,6 +16,7 @@
  */
 package org.apache.rocketmq.client.impl.consumer;
 
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
@@ -27,8 +28,22 @@ import org.apache.rocketmq.common.ServiceThread;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.common.utils.ThreadUtils;
 
+/**
+ * 消息拉取
+ *
+ * 消息消费有两种模式：广播模式与集群模式，
+ * 1.广播模式比较简单，每一个消费者需要去拉取订阅主题下所有消费队列的消息，
+ * 2.集群模式
+ * 在集群模式下，同一个消费组内有多个消息消费者，同一个主题存在多个消费队列，那么消费者如何进行消息队列负载呢？
+ * 从上文启动流程也知道，每一个消费组内维护一个线程池来消费消息，那么这些线程又是如何分工合作的呢？
+ *
+ * 消息队列负载，通常的做法是一个消息队列在同一时间只允许被一个消息消费者消费，一个消息消费者可以同时消费多个消息队列，那么RocketMQ是如何实现的呢？
+ * 从MQClientInstance的启动流程中可以看出，RocketMQ使用一个单独的线程 {@link MQClientInstance#start()}
+ * PullMessageService来负责消息的拉取。
+ */
 public class PullMessageService extends ServiceThread {
     private final InternalLogger log = ClientLogger.getLog();
+
     private final LinkedBlockingQueue<PullRequest> pullRequestQueue = new LinkedBlockingQueue<PullRequest>();
     private final MQClientInstance mQClientFactory;
     private final ScheduledExecutorService scheduledExecutorService = Executors
@@ -43,6 +58,15 @@ public class PullMessageService extends ServiceThread {
         this.mQClientFactory = mQClientFactory;
     }
 
+    /**
+     * put时机
+     * 延迟添加
+     *
+     * @see {@link DefaultMQPushConsumerImpl#pullMessage(PullRequest)}
+     *
+     * @param pullRequest
+     * @param timeDelay
+     */
     public void executePullRequestLater(final PullRequest pullRequest, final long timeDelay) {
         if (!isStopped()) {
             this.scheduledExecutorService.schedule(new Runnable() {
@@ -56,6 +80,15 @@ public class PullMessageService extends ServiceThread {
         }
     }
 
+    /**
+     * put时机
+     * 立即添加
+     *
+     * put时机
+     * {@link DefaultMQPushConsumerImpl#pullMessage(PullRequest)}
+     * {@link RebalancePushImpl#dispatchPullRequest(List)}
+     * @param pullRequest
+     */
     public void executePullRequestImmediately(final PullRequest pullRequest) {
         try {
             this.pullRequestQueue.put(pullRequest);
@@ -76,6 +109,10 @@ public class PullMessageService extends ServiceThread {
         return scheduledExecutorService;
     }
 
+    /**
+     * 消息拉取
+     * @param pullRequest
+     */
     private void pullMessage(final PullRequest pullRequest) {
         final MQConsumerInner consumer = this.mQClientFactory.selectConsumer(pullRequest.getConsumerGroup());
         if (consumer != null) {
@@ -86,13 +123,25 @@ public class PullMessageService extends ServiceThread {
         }
     }
 
+
+    /**
+     * 消息拉取调用入口
+     * {@link MQClientInstance#start()}
+     */
     @Override
     public void run() {
         log.info(this.getServiceName() + " service started");
 
+        // 技巧：while (!this.isStopped()) 这是一种通用的设计技巧
+        // 每执行一次业务逻辑检测一下其运行状态，可以通过其他线程将stopped设置为true，从而停止该线程
         while (!this.isStopped()) {
             try {
+                /**
+                 * 从队列中获取一个任务，阻塞，直到有任务加入队列
+                 * pullRequestQueue#put时机 {@link PullMessageService#executePullRequestImmediately(PullRequest)}
+                 */
                 PullRequest pullRequest = this.pullRequestQueue.take();
+                // 消息拉取
                 this.pullMessage(pullRequest);
             } catch (InterruptedException ignored) {
             } catch (Exception e) {

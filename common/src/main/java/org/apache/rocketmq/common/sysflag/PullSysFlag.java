@@ -16,11 +16,36 @@
  */
 package org.apache.rocketmq.common.sysflag;
 
+
+/**
+ * 拉取消息系统标识
+ * 技巧：通过位操作来表达含义
+ */
 public class PullSysFlag {
+
+    /**
+     * 从内存中读取的消息进度大于0
+     */
     private final static int FLAG_COMMIT_OFFSET = 0x1;
+
+    /**
+     * 消息拉取时支持挂起
+     */
     private final static int FLAG_SUSPEND = 0x1 << 1;
+
+    /**
+     * 消息过滤机制为表达式
+     */
     private final static int FLAG_SUBSCRIPTION = 0x1 << 2;
+
+    /**
+     * 消息过滤机制为类过滤模式
+     */
     private final static int FLAG_CLASS_FILTER = 0x1 << 3;
+
+    /**
+     *
+     */
     private final static int FLAG_LITE_PULL_MESSAGE = 0x1 << 4;
 
     public static int buildSysFlag(final boolean commitOffset, final boolean suspend,

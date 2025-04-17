@@ -388,6 +388,7 @@ public class DefaultMessageStore implements MessageStore {
             /**
              * 启动消息分发
              * 用于实时更新处理 消息消费队列consumequeue 与索引文件index
+             * 消息到达时，触发消息拉取
              *
              * 构造位置如下：
              * @see DefaultMessageStore#DefaultMessageStore(MessageStoreConfig, BrokerStatsManager, MessageArrivingListener, BrokerConfig)
@@ -716,8 +717,17 @@ public class DefaultMessageStore implements MessageStore {
         return commitLog;
     }
 
-    // TODO-QIU: 2024年3月29日, 0029
-    // 获取消息
+    /**
+     * 查找消息
+     *
+     * @param group Consumer group that launches this query.
+     * @param topic Topic to query.
+     * @param queueId Queue ID to query.
+     * @param offset Logical offset to start from.  待拉取的偏移量
+     * @param maxMsgNums Maximum count of messages to query.    最大拉取消息条数， 默认32条
+     * @param messageFilter Message filter used to screen desired messages. 消息过滤器
+     * @return
+     */
     public GetMessageResult getMessage(final String group, final String topic, final int queueId, final long offset,
         final int maxMsgNums,
         final MessageFilter messageFilter) {
@@ -733,30 +743,47 @@ public class DefaultMessageStore implements MessageStore {
 
         long beginTime = this.getSystemClock().now();
 
+        // 默认没有消息
         GetMessageStatus status = GetMessageStatus.NO_MESSAGE_IN_QUEUE;
+        // 待查找的队列偏移量
         long nextBeginOffset = offset;
+
+        // 当前消息队列最小偏移量
         long minOffset = 0;
+        // 当前消息队列最大偏移量
         long maxOffset = 0;
 
         GetMessageResult getResult = new GetMessageResult();
 
+        // 当前commitlog文件的最大偏移量
         final long maxOffsetPy = this.commitLog.getMaxOffset();
 
+        // 3.根据主题名称和队列，获取消费队列
         ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);
         if (consumeQueue != null) {
             minOffset = consumeQueue.getMinOffsetInQueue();
             maxOffset = consumeQueue.getMaxOffsetInQueue();
 
+            // 4.偏移量异常情况，校对下一次拉取偏移量
             if (maxOffset == 0) {
+                // 表示队列中没有消息
                 status = GetMessageStatus.NO_MESSAGE_IN_QUEUE;
                 nextBeginOffset = nextOffsetCorrection(offset, 0);
             } else if (offset < minOffset) {
+                // 比最小的还小
                 status = GetMessageStatus.OFFSET_TOO_SMALL;
                 nextBeginOffset = nextOffsetCorrection(offset, minOffset);
             } else if (offset == maxOffset) {
+                /**
+                 * 等于最大偏移量
+                 * 如果有新的消息达到，此时回创建一个新的CommitQueue文件，
+                 * 按照上一下ConsumeQueue的最大偏移量就是下一个文件的起始偏移量，所以第2次拉取时就能成功
+                 * 客户端对这个状态码的处理操作是 executePullRequestImmediately
+                 */
                 status = GetMessageStatus.OFFSET_OVERFLOW_ONE;
                 nextBeginOffset = nextOffsetCorrection(offset, offset);
             } else if (offset > maxOffset) {
+                // 比最大的还大
                 status = GetMessageStatus.OFFSET_OVERFLOW_BADLY;
                 if (0 == minOffset) {
                     nextBeginOffset = nextOffsetCorrection(offset, minOffset);
@@ -764,6 +791,7 @@ public class DefaultMessageStore implements MessageStore {
                     nextBeginOffset = nextOffsetCorrection(offset, maxOffset);
                 }
             } else {
+                // 5.minOffset <= offset < maxOffset
                 SelectMappedBufferResult bufferConsumeQueue = consumeQueue.getIndexBuffer(offset);
                 if (bufferConsumeQueue != null) {
                     try {
@@ -773,6 +801,7 @@ public class DefaultMessageStore implements MessageStore {
                         long maxPhyOffsetPulling = 0;
 
                         int i = 0;
+                        // 从offset处尝试拉取32条消息
                         final int maxFilterMessageCount = Math.max(16000, maxMsgNums * ConsumeQueue.CQ_STORE_UNIT_SIZE);
                         final boolean diskFallRecorded = this.messageStoreConfig.isDiskFallRecorded();
                         ConsumeQueueExt.CqExtUnit cqExtUnit = new ConsumeQueueExt.CqExtUnit();
@@ -838,6 +867,7 @@ public class DefaultMessageStore implements MessageStore {
                             }
 
                             this.storeStatsService.getGetMessageTransferedMsgCount().incrementAndGet();
+                            // 设置查找到的消息
                             getResult.addMessage(selectResult);
                             status = GetMessageStatus.FOUND;
                             nextPhyFileStartOffset = Long.MIN_VALUE;
@@ -865,6 +895,10 @@ public class DefaultMessageStore implements MessageStore {
                         bufferConsumeQueue.release();
                     }
                 } else {
+                    /**
+                     * 根据ConsumeQueue的偏移量没有找到内容
+                     * 将偏移量定位到下一个ConsumeQueue，就是offset + (一个ConsumeQueue包含多少个条目=MappedFileSize/20)
+                     */
                     status = GetMessageStatus.OFFSET_FOUND_NULL;
                     nextBeginOffset = nextOffsetCorrection(offset, consumeQueue.rollNextFile(offset));
                     log.warn("consumer request topic: " + topic + "offset: " + offset + " minOffset: " + minOffset + " maxOffset: "
@@ -872,6 +906,9 @@ public class DefaultMessageStore implements MessageStore {
                 }
             }
         } else {
+            /**
+             * 
+             */
             status = GetMessageStatus.NO_MATCHED_LOGIC_QUEUE;
             nextBeginOffset = nextOffsetCorrection(offset, 0);
         }
@@ -1408,8 +1445,16 @@ public class DefaultMessageStore implements MessageStore {
         return logic;
     }
 
+    /**
+     * 纠正下一次拉取偏移量的位置
+     * @param oldOffset
+     * @param newOffset
+     * @return
+     */
     private long nextOffsetCorrection(long oldOffset, long newOffset) {
         long nextOffset = oldOffset;
+        // 主节点 或者 从服务器支持offset检测
+        // TODO-QIU: 2025年4月16日, 0016
         if (this.getMessageStoreConfig().getBrokerRole() != BrokerRole.SLAVE || this.getMessageStoreConfig().isOffsetCheckInSlave()) {
             nextOffset = newOffset;
         }
@@ -2158,6 +2203,7 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     /**
+     * RocketMQ轮询机制
      * 实时更新消息消费队列和索引文件
      */
     class ReputMessageService extends ServiceThread {
@@ -2237,8 +2283,11 @@ public class DefaultMessageStore implements MessageStore {
                                      */
                                     DefaultMessageStore.this.doDispatch(dispatchRequest);
 
+                                    // 主节点 && 支持长轮询
                                     if (BrokerRole.SLAVE != DefaultMessageStore.this.getMessageStoreConfig().getBrokerRole()
                                         && DefaultMessageStore.this.brokerConfig.isLongPollingEnable()) {
+
+                                        // 消息到达时，触发消息拉取
                                         DefaultMessageStore.this.messageArrivingListener.arriving(dispatchRequest.getTopic(),
                                             dispatchRequest.getQueueId(), dispatchRequest.getConsumeQueueOffset() + 1,
                                             dispatchRequest.getTagsCode(), dispatchRequest.getStoreTimestamp(),

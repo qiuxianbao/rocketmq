@@ -29,6 +29,9 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.store.ConsumeQueueExt;
 
+/**
+ * MQ轮询机制
+ */
 public class PullRequestHoldService extends ServiceThread {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final String TOPIC_QUEUEID_SEPARATOR = "@";
@@ -41,6 +44,12 @@ public class PullRequestHoldService extends ServiceThread {
         this.brokerController = brokerController;
     }
 
+    /**
+     * 挂起 topic@queueId 请求
+     * @param topic
+     * @param queueId
+     * @param pullRequest
+     */
     public void suspendPullRequest(final String topic, final int queueId, final PullRequest pullRequest) {
         String key = this.buildKey(topic, queueId);
         ManyPullRequest mpr = this.pullRequestTable.get(key);
@@ -68,9 +77,12 @@ public class PullRequestHoldService extends ServiceThread {
         log.info("{} service started", this.getServiceName());
         while (!this.isStopped()) {
             try {
+                // 支持长轮询
                 if (this.brokerController.getBrokerConfig().isLongPollingEnable()) {
+                    // 等待5s，即每5s尝试一次，判断新消息是否到达
                     this.waitForRunning(5 * 1000);
                 } else {
+                    // 默认再等待1s再次尝试
                     this.waitForRunning(this.brokerController.getBrokerConfig().getShortPollingTimeMills());
                 }
 
@@ -93,14 +105,20 @@ public class PullRequestHoldService extends ServiceThread {
         return PullRequestHoldService.class.getSimpleName();
     }
 
+    /**
+     * 检查是否有新消息到达
+     */
     private void checkHoldRequest() {
+        // 遍历拉取任务表
         for (String key : this.pullRequestTable.keySet()) {
             String[] kArray = key.split(TOPIC_QUEUEID_SEPARATOR);
             if (2 == kArray.length) {
                 String topic = kArray[0];
                 int queueId = Integer.parseInt(kArray[1]);
+                // 获取topic-queueId的最大偏移量
                 final long offset = this.brokerController.getMessageStore().getMaxOffsetInQueue(topic, queueId);
                 try {
+                    // 触发消息拉取
                     this.notifyMessageArriving(topic, queueId, offset);
                 } catch (Throwable e) {
                     log.error("check hold request failed. topic={}, queueId={}", topic, queueId, e);
@@ -113,9 +131,25 @@ public class PullRequestHoldService extends ServiceThread {
         notifyMessageArriving(topic, queueId, maxOffset, null, 0, null, null);
     }
 
+    /**
+     * 触发消息拉取
+     *
+     * 触发时机有2个：
+     * @see PullRequestHoldService#notifyMessageArriving(String, int, long)
+     * @see NotifyMessageArrivingListener#arriving(String, int, long, long, long, byte[], Map)
+     *
+     * @param topic
+     * @param queueId
+     * @param maxOffset
+     * @param tagsCode
+     * @param msgStoreTime
+     * @param filterBitMap
+     * @param properties
+     */
     public void notifyMessageArriving(final String topic, final int queueId, final long maxOffset, final Long tagsCode,
         long msgStoreTime, byte[] filterBitMap, Map<String, String> properties) {
         String key = this.buildKey(topic, queueId);
+        // 1.获取当前主题、队列所有挂起拉取任务
         ManyPullRequest mpr = this.pullRequestTable.get(key);
         if (mpr != null) {
             List<PullRequest> requestList = mpr.cloneListAndClear();
@@ -138,6 +172,7 @@ public class PullRequestHoldService extends ServiceThread {
 
                         if (match) {
                             try {
+                                // 消息匹配，再调用一次拉取
                                 this.brokerController.getPullMessageProcessor().executeRequestWhenWakeup(request.getClientChannel(),
                                     request.getRequestCommand());
                             } catch (Throwable e) {
@@ -147,6 +182,7 @@ public class PullRequestHoldService extends ServiceThread {
                         }
                     }
 
+                    // 超时，则不继续等待，直接返回客户消息未找到
                     if (System.currentTimeMillis() >= (request.getSuspendTimestamp() + request.getTimeoutMillis())) {
                         try {
                             this.brokerController.getPullMessageProcessor().executeRequestWhenWakeup(request.getClientChannel(),

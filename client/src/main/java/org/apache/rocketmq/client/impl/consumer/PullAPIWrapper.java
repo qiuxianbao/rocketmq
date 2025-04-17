@@ -20,6 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -67,7 +68,14 @@ public class PullAPIWrapper {
         this.unitMode = unitMode;
     }
 
-    // TODO-QIU: 2024年3月29日, 0029
+    /**
+     * 处理拉取结果
+     *
+     * @param mq
+     * @param pullResult
+     * @param subscriptionData
+     * @return
+     */
     public PullResult processPullResult(final MessageQueue mq, final PullResult pullResult,
         final SubscriptionData subscriptionData) {
         PullResultExt pullResultExt = (PullResultExt) pullResult;
@@ -76,6 +84,7 @@ public class PullAPIWrapper {
         this.updatePullFromWhichNode(mq, pullResultExt.getSuggestWhichBrokerId());
         if (PullStatus.FOUND == pullResult.getPullStatus()) {
             ByteBuffer byteBuffer = ByteBuffer.wrap(pullResultExt.getMessageBinary());
+            // 将二进制解码，取出结果
             List<MessageExt> msgList = MessageDecoder.decodes(byteBuffer);
 
             List<MessageExt> msgListFilterAgain = msgList;
@@ -142,6 +151,27 @@ public class PullAPIWrapper {
         }
     }
 
+    /**
+     * 拉取消息
+     *
+     * @param mq    从那个消息队列拉取消息 put {@link RebalanceImpl#updateProcessQueueTableInRebalance(String, Set, boolean)}
+     * @param subExpression 消息过滤表达式
+     * @param expressionType    消息表达式类型
+     * @param subVersion
+     * @param offset    消息拉取偏移量
+     * @param maxNums   本地拉取最大消息数，默认为32
+     * @param sysFlag   拉取系统标记
+     * @param commitOffset  当前MessageQueue的消费进度（内存中）
+     * @param brokerSuspendMaxTimeMillis 消息拉取过程中允许broker挂起超时时间，默认为15s
+     * @param timeoutMillis 消息拉取超时时间
+     * @param communicationMode 消息拉取模式
+     * @param pullCallback  从Broker拉取消息后的回调函数
+     * @return
+     * @throws MQClientException
+     * @throws RemotingException
+     * @throws MQBrokerException
+     * @throws InterruptedException
+     */
     public PullResult pullKernelImpl(
         final MessageQueue mq,
         final String subExpression,
@@ -156,9 +186,16 @@ public class PullAPIWrapper {
         final CommunicationMode communicationMode,
         final PullCallback pullCallback
     ) throws MQClientException, RemotingException, MQBrokerException, InterruptedException {
+
+        /**
+         * 6.根据brokerName、BrokerId 从 MQClientInstance 中获取broker地址
+         * 相同名称的broker会构成主从结构，其BrokerId会不一样，
+         * 在每次拉取后，会给出一个建议，下次拉取从主节点还是从节点拉取
+         */
         FindBrokerResult findBrokerResult =
             this.mQClientFactory.findBrokerAddressInSubscribe(mq.getBrokerName(),
                 this.recalculatePullFromWhichNode(mq), false);
+
         if (null == findBrokerResult) {
             this.mQClientFactory.updateTopicRouteInfoFromNameServer(mq.getTopic());
             findBrokerResult =
@@ -195,10 +232,12 @@ public class PullAPIWrapper {
             requestHeader.setExpressionType(expressionType);
 
             String brokerAddr = findBrokerResult.getBrokerAddr();
+            // 7.消息过滤模式是类模式，则找到filterServer的地址
             if (PullSysFlag.hasClassFilterFlag(sysFlagInner)) {
                 brokerAddr = computPullFromWhichFilterServer(mq.getTopic(), brokerAddr);
             }
 
+            // 向服务端发送指令，返回结果
             PullResult pullResult = this.mQClientFactory.getMQClientAPIImpl().pullMessage(
                 brokerAddr,
                 requestHeader,
@@ -212,6 +251,11 @@ public class PullAPIWrapper {
         throw new MQClientException("The broker[" + mq.getBrokerName() + "] not exist", null);
     }
 
+    /**
+     * 给出建议，从哪一个节点开始拉取
+     * @param mq
+     * @return
+     */
     public long recalculatePullFromWhichNode(final MessageQueue mq) {
         if (this.isConnectBrokerByUser()) {
             return this.defaultBrokerId;

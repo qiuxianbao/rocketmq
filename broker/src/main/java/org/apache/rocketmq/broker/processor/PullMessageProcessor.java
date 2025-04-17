@@ -33,6 +33,9 @@ import org.apache.rocketmq.broker.longpolling.PullRequest;
 import org.apache.rocketmq.broker.mqtrace.ConsumeMessageContext;
 import org.apache.rocketmq.broker.mqtrace.ConsumeMessageHook;
 import org.apache.rocketmq.broker.pagecache.ManyMessageTransfer;
+import org.apache.rocketmq.client.consumer.PullCallback;
+import org.apache.rocketmq.client.impl.CommunicationMode;
+import org.apache.rocketmq.client.impl.MQClientAPIImpl;
 import org.apache.rocketmq.common.MixAll;
 import org.apache.rocketmq.common.TopicConfig;
 import org.apache.rocketmq.common.TopicFilterType;
@@ -61,14 +64,14 @@ import org.apache.rocketmq.remoting.netty.AsyncNettyRequestProcessor;
 import org.apache.rocketmq.remoting.netty.NettyRequestProcessor;
 import org.apache.rocketmq.remoting.netty.RequestTask;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
-import org.apache.rocketmq.store.GetMessageResult;
-import org.apache.rocketmq.store.MessageExtBrokerInner;
-import org.apache.rocketmq.store.MessageFilter;
-import org.apache.rocketmq.store.PutMessageResult;
+import org.apache.rocketmq.store.*;
 import org.apache.rocketmq.store.config.BrokerRole;
 import org.apache.rocketmq.store.stats.BrokerStatsManager;
 
-// TODO-QIU: 2024年7月24日, 0024
+/**
+ * 消息拉取（服务端）
+ * Rocket-MQ通过在Broker端配置longPollingEnable为true来开启长轮询模式。消息拉取时服务端从
+ */
 public class PullMessageProcessor extends AsyncNettyRequestProcessor implements NettyRequestProcessor {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private final BrokerController brokerController;
@@ -89,7 +92,16 @@ public class PullMessageProcessor extends AsyncNettyRequestProcessor implements 
         return false;
     }
 
-    // TODO-QIU: 2024年3月29日, 0029
+    /**
+     * 消息拉取 （服务端）
+     * 客户端 {@link MQClientAPIImpl#pullMessage(String, PullMessageRequestHeader, long, CommunicationMode, PullCallback)}
+     *
+     * @param channel
+     * @param request
+     * @param brokerAllowSuspend
+     * @return
+     * @throws RemotingCommandException
+     */
     private RemotingCommand processRequest(final Channel channel, RemotingCommand request, boolean brokerAllowSuspend)
         throws RemotingCommandException {
         RemotingCommand response = RemotingCommand.createResponseCommand(PullMessageResponseHeader.class);
@@ -151,6 +163,7 @@ public class PullMessageProcessor extends AsyncNettyRequestProcessor implements 
             return response;
         }
 
+        // 1.根据订阅信息，构建消息过滤器
         SubscriptionData subscriptionData = null;
         ConsumerFilterData consumerFilterData = null;
         if (hasSubscriptionFlag) {
@@ -238,15 +251,18 @@ public class PullMessageProcessor extends AsyncNettyRequestProcessor implements 
                 this.brokerController.getConsumerFilterManager());
         }
 
+        // 2.查找消息
         final GetMessageResult getMessageResult =
             this.brokerController.getMessageStore().getMessage(requestHeader.getConsumerGroup(), requestHeader.getTopic(),
                 requestHeader.getQueueId(), requestHeader.getQueueOffset(), requestHeader.getMaxMsgNums(), messageFilter);
         if (getMessageResult != null) {
+            // 6.填充其他参数
             response.setRemark(getMessageResult.getStatus().name());
             responseHeader.setNextBeginOffset(getMessageResult.getNextBeginOffset());
             responseHeader.setMinOffset(getMessageResult.getMinOffset());
             responseHeader.setMaxOffset(getMessageResult.getMaxOffset());
 
+            // 7.根据主从同步延迟，设置下一次拉取的borkerId
             // 如果从 commitlog 文件查找消息时，发现消息堆积太多，默认超过物理内存的 40%后，会建议从从服务器读取
             if (getMessageResult.isSuggestPullingFromSlave()) {
                 responseHeader.setSuggestWhichBrokerId(subscriptionGroupConfig.getWhichBrokerWhenConsumeSlowly());
@@ -281,6 +297,9 @@ public class PullMessageProcessor extends AsyncNettyRequestProcessor implements 
                 responseHeader.setSuggestWhichBrokerId(MixAll.MASTER_ID);
             }
 
+            /**
+             * 8.根据 ${@link GetMessageStatus} 的状态转换 ${@link ResponseCode} 响应码
+             */
             switch (getMessageResult.getStatus()) {
                 case FOUND:
                     response.setCode(ResponseCode.SUCCESS);
@@ -373,7 +392,7 @@ public class PullMessageProcessor extends AsyncNettyRequestProcessor implements 
                 this.executeConsumeMessageHookBefore(context);
             }
 
-            // 响应成功
+            // 判断GetMessageResult的状态
             switch (response.getCode()) {
                 case ResponseCode.SUCCESS:
                     // 监控
@@ -412,10 +431,32 @@ public class PullMessageProcessor extends AsyncNettyRequestProcessor implements 
                         response = null;
                     }
                     break;
+
+                /**
+                 * RocketMQ并没有真正实现推模式，而是消费者主动向消息服务器拉取消息，RocketMQ推模式是循环向消息服务端发送消息拉取请求，
+                 *
+                 * 如果消息消费者向RocketMQ发送消息拉取时，【消息并未到达消费队列】，
+                 * 1.如果不启用长轮询机制，则会在服务端等待shortPolling-TimeMills时间后（挂起），再去判断消息是否已到达消息队列，
+                 * 如果消息未到达，则提示消息拉取客户端PULL_NOTFOUND（消息不存在）
+                 *
+                 * 2.如果开启长轮询模式，RocketMQ一方面会每5s轮询检查一次消息是否可达，同时一有新消息到达后，立马通知挂起线程再次验证新消息是否是自己感兴趣的消息，
+                 * 如果是，则从commitlog文件提取消息返回给消息拉取客户端，
+                 * 否则直到挂起超时，超时时间由消息拉取方在消息拉取时封装在请求参数中，
+                 * PUSH模式默认为15s，PULL模式通过DefaultMQPullConsumer#setBrokerSuspendMaxTimeMillis设置
+                 */
                 case ResponseCode.PULL_NOT_FOUND:
 
+                    /**
+                     * brokerAllowSuspend 默认是 true，
+                     * true,表示支持挂起，如果未找到消息时挂起
+                     * false,未找到消息时，直接返回客户端消息未找到
+                     *
+                     * hasSuspendFlag在拉取消息时设置，默认为true
+                     */
                     if (brokerAllowSuspend && hasSuspendFlag) {
+                        // 支持长轮询，PUSH模式默认是15s
                         long pollingTimeMills = suspendTimeoutMillisLong;
+                        // 不支持长轮询
                         if (!this.brokerController.getBrokerConfig().isLongPollingEnable()) {
                             pollingTimeMills = this.brokerController.getBrokerConfig().getShortPollingTimeMills();
                         }
@@ -423,9 +464,13 @@ public class PullMessageProcessor extends AsyncNettyRequestProcessor implements 
                         String topic = requestHeader.getTopic();
                         long offset = requestHeader.getQueueOffset();
                         int queueId = requestHeader.getQueueId();
+                        // 构建request
                         PullRequest pullRequest = new PullRequest(request, channel, pollingTimeMills,
                             this.brokerController.getMessageStore().now(), offset, subscriptionData, messageFilter);
+                        // 提交到 PullRequestHoldService线程中
                         this.brokerController.getPullRequestHoldService().suspendPullRequest(topic, queueId, pullRequest);
+
+                        // 设置为null，将不会立即响应
                         response = null;
                         break;
                     }
@@ -463,17 +508,19 @@ public class PullMessageProcessor extends AsyncNettyRequestProcessor implements 
                     assert false;
             }
         } else {
+            //
             response.setCode(ResponseCode.SYSTEM_ERROR);
             response.setRemark("store getMessage return null");
         }
 
-        // 是否允许挂起
+        // 9.是否允许挂起
         boolean storeOffsetEnable = brokerAllowSuspend;
         // 消息消费者在内存中是否缓存了消息消费进度，如果缓存了，该标记设置为 true
         storeOffsetEnable = storeOffsetEnable && hasCommitOffsetFlag;
-        storeOffsetEnable = storeOffsetEnable
-            && this.brokerController.getMessageStoreConfig().getBrokerRole() != BrokerRole.SLAVE;
+        // 主节点
+        storeOffsetEnable = storeOffsetEnable && this.brokerController.getMessageStoreConfig().getBrokerRole() != BrokerRole.SLAVE;
         if (storeOffsetEnable) {
+            // 更新消息消费进度
             this.brokerController.getConsumerOffsetManager().commitOffset(RemotingHelper.parseChannelRemoteAddr(channel),
                 requestHeader.getConsumerGroup(), requestHeader.getTopic(), requestHeader.getQueueId(), requestHeader.getCommitOffset());
         }
@@ -561,9 +608,12 @@ public class PullMessageProcessor extends AsyncNettyRequestProcessor implements 
             @Override
             public void run() {
                 try {
+                    // 再调用 1 次拉取
+                    // 但是，本次不支持拉取线程挂起
                     final RemotingCommand response = PullMessageProcessor.this.processRequest(channel, request, false);
 
                     if (response != null) {
+                        // 如果有结果，则返回给客户端
                         response.setOpaque(request.getOpaque());
                         response.markResponseType();
                         try {

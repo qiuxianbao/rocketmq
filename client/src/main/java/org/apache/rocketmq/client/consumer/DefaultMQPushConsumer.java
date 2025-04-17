@@ -28,6 +28,7 @@ import org.apache.rocketmq.client.consumer.store.OffsetStore;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.impl.consumer.DefaultMQPushConsumerImpl;
+import org.apache.rocketmq.client.impl.consumer.ProcessQueue;
 import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.client.trace.AsyncTraceDispatcher;
 import org.apache.rocketmq.client.trace.TraceDispatcher;
@@ -205,7 +206,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
     /**
      * Flow control threshold on queue level, each message queue will cache at most 1000 messages by default,
      * Consider the {@code pullBatchSize}, the instantaneous value may exceed the limit
-     * 每1000次流控后打印流控日志     // TODO-QIU: 2025年4月14日, 0014
+     * 每1000次流控后打印流控日志 {@link ProcessQueue#msgCount}
      */
     private int pullThresholdForQueue = 1000;
 
@@ -689,7 +690,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      * please do not use this method.
      *
      * @param msg Message to send back.
-     * @param delayLevel delay level.
+     * @param delayLevel delay level. {@link org.apache.rocketmq.test.delay.DelayConf}
      * @throws RemotingException if there is any network-tier error.
      * @throws MQBrokerException if there is any broker error.
      * @throws InterruptedException if the thread is interrupted.

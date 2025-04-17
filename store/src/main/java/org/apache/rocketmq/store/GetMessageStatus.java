@@ -16,25 +16,60 @@
  */
 package org.apache.rocketmq.store;
 
-// TODO-QIU: 2024年3月29日, 0029
-// 获取消息的状态
+import org.apache.rocketmq.common.protocol.ResponseCode;
+import org.apache.rocketmq.remoting.protocol.RemotingSysResponseCode;
+
+/**
+ * 查找消息的状态
+ * 状态转换
+ * {@link org.apache.rocketmq.broker.processor.PullMessageProcessor#processRequest(io.netty.channel.Channel, org.apache.rocketmq.remoting.protocol.RemotingCommand, boolean)}
+ */
 public enum GetMessageStatus {
 
+    /**
+     * {@link RemotingSysResponseCode#SUCCESS}
+     */
     FOUND,
 
+    /**
+     * {@link ResponseCode#PULL_RETRY_IMMEDIATELY}
+     */
     NO_MATCHED_MESSAGE,
 
+    /**
+     * {@link ResponseCode#PULL_RETRY_IMMEDIATELY}
+     */
     MESSAGE_WAS_REMOVING,
 
+    /**
+     * {@link ResponseCode#PULL_NOT_FOUND}
+     */
     OFFSET_FOUND_NULL,
 
+    /**
+     * {@link ResponseCode#PULL_OFFSET_MOVED}
+     */
     OFFSET_OVERFLOW_BADLY,
 
+    /**
+     * {@link ResponseCode#PULL_NOT_FOUND}
+     */
     OFFSET_OVERFLOW_ONE,
 
+    /**
+     * {@link ResponseCode#PULL_OFFSET_MOVED}
+     */
     OFFSET_TOO_SMALL,
 
+    /**
+     * {@link ResponseCode#PULL_NOT_FOUND}
+     * {@link ResponseCode#PULL_OFFSET_MOVED}
+     */
     NO_MATCHED_LOGIC_QUEUE,
 
+    /**
+     * {@link ResponseCode#PULL_NOT_FOUND}
+     * {@link ResponseCode#PULL_OFFSET_MOVED}
+     */
     NO_MESSAGE_IN_QUEUE,
 }

@@ -48,6 +48,11 @@ public abstract class RebalanceImpl {
     protected final ConcurrentMap<MessageQueue, ProcessQueue> processQueueTable = new ConcurrentHashMap<MessageQueue, ProcessQueue>(64);
     protected final ConcurrentMap<String/* topic */, Set<MessageQueue>> topicSubscribeInfoTable =
         new ConcurrentHashMap<String, Set<MessageQueue>>();
+
+    /**
+     *
+     * put 参考 {@link DefaultMQPushConsumerImpl#subscribe(String, String)}
+     */
     protected final ConcurrentMap<String /* topic */, SubscriptionData> subscriptionInner =
         new ConcurrentHashMap<String, SubscriptionData>();
     protected String consumerGroup;
@@ -386,7 +391,9 @@ public abstract class RebalanceImpl {
                         PullRequest pullRequest = new PullRequest();
                         pullRequest.setConsumerGroup(consumerGroup);
                         pullRequest.setNextOffset(nextOffset);
+                        // 设置消息队列
                         pullRequest.setMessageQueue(mq);
+                        // 设置消息消费处理队列
                         pullRequest.setProcessQueue(pq);
                         pullRequestList.add(pullRequest);
                         changed = true;

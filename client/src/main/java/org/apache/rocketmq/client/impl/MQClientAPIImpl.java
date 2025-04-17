@@ -28,6 +28,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.ClientConfig;
@@ -770,6 +771,20 @@ public class MQClientAPIImpl {
         throw new MQBrokerException(response.getCode(), response.getRemark());
     }
 
+    /**
+     * 消息拉取（客户端）
+     * 服务端 {@link org.apache.rocketmq.broker.processor.PullMessageProcessor#processRequest(Channel, RemotingCommand, boolean)}
+     *
+     * @param addr
+     * @param requestHeader
+     * @param timeoutMillis
+     * @param communicationMode
+     * @param pullCallback
+     * @return
+     * @throws RemotingException
+     * @throws MQBrokerException
+     * @throws InterruptedException
+     */
     public PullResult pullMessage(
         final String addr,
         final PullMessageRequestHeader requestHeader,
@@ -777,6 +792,7 @@ public class MQClientAPIImpl {
         final CommunicationMode communicationMode,
         final PullCallback pullCallback
     ) throws RemotingException, MQBrokerException, InterruptedException {
+        // 构建发送指令
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.PULL_MESSAGE, requestHeader);
 
         switch (communicationMode) {
@@ -784,6 +800,7 @@ public class MQClientAPIImpl {
                 assert false;
                 return null;
             case ASYNC:
+                // 异步发送
                 this.pullMessageAsync(addr, request, timeoutMillis, pullCallback);
                 return null;
             case SYNC:
@@ -808,8 +825,10 @@ public class MQClientAPIImpl {
                 RemotingCommand response = responseFuture.getResponseCommand();
                 if (response != null) {
                     try {
+                        // 转换response
                         PullResult pullResult = MQClientAPIImpl.this.processPullResponse(response);
                         assert pullResult != null;
+                        // 执行回调
                         pullCallback.onSuccess(pullResult);
                     } catch (Exception e) {
                         pullCallback.onException(e);
@@ -838,6 +857,15 @@ public class MQClientAPIImpl {
         return this.processPullResponse(response);
     }
 
+
+    /**
+     * 服务端响应码转换
+     *
+     * @param response
+     * @return
+     * @throws MQBrokerException
+     * @throws RemotingCommandException
+     */
     private PullResult processPullResponse(
         final RemotingCommand response) throws MQBrokerException, RemotingCommandException {
         PullStatus pullStatus = PullStatus.NO_NEW_MSG;

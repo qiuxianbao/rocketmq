@@ -18,11 +18,43 @@ package org.apache.rocketmq.client.impl.consumer;
 
 import org.apache.rocketmq.common.message.MessageQueue;
 
+import java.util.List;
+import java.util.Set;
+
+/**
+ * 消息拉取客户端请求
+ *
+ * 技巧：
+ * 从Broker拉取到的消息先存入 {@link ProcessQueue} 中
+ * 然后再提交到消费者消费线程池 {@link ConsumeMessageService#submitConsumeRequest(List, ProcessQueue, MessageQueue, boolean)} 消费
+ */
 public class PullRequest {
+
+    /**
+     * 消费组
+     */
     private String consumerGroup;
+
+    /**
+     * 待拉取消息队列
+     * put {@link RebalanceImpl#updateProcessQueueTableInRebalance(String, Set, boolean)}
+     */
     private MessageQueue messageQueue;
+
+    /**
+     * 消息消费处理队列
+     * put {@link RebalanceImpl#updateProcessQueueTableInRebalance(String, Set, boolean)}
+     */
     private ProcessQueue processQueue;
+
+    /**
+     * 待拉取 messageQueue 的偏移量
+     */
     private long nextOffset;
+
+    /**
+     * 是否被锁定
+     */
     private boolean lockedFirst = false;
 
     public boolean isLockedFirst() {

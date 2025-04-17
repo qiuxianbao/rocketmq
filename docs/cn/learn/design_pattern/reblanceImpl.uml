@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.rocketmq.client.impl.consumer.RebalanceImpl</OriginalElement>
+  <nodes>
+    <node x="-108.0" y="166.0">org.apache.rocketmq.client.impl.consumer.RebalancePullImpl</node>
+    <node x="-94.5" y="-14.0">org.apache.rocketmq.client.impl.consumer.RebalanceImpl</node>
+    <node x="138.0" y="166.0">org.apache.rocketmq.client.impl.consumer.RebalanceLitePullImpl</node>
+    <node x="6.5" y="106.0">org.apache.rocketmq.client.impl.consumer.RebalancePushImpl</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.apache.rocketmq.client.impl.consumer.RebalancePushImpl" target="org.apache.rocketmq.client.impl.consumer.RebalanceImpl" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="106.0" y="80.0" />
+      <point x="-14.0" y="80.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.client.impl.consumer.RebalancePullImpl" target="org.apache.rocketmq.client.impl.consumer.RebalanceImpl" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.client.impl.consumer.RebalanceLitePullImpl" target="org.apache.rocketmq.client.impl.consumer.RebalanceImpl" relationship="GENERALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="246.0" y="80.0" />
+      <point x="-14.0" y="80.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.5" showDependencies="false" x="133.0" y="100.0" />
+  <SelectedNodes>
+    <node>org.apache.rocketmq.client.impl.consumer.RebalancePushImpl</node>
+  </SelectedNodes>
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

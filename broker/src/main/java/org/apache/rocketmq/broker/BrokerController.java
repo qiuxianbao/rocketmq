@@ -162,7 +162,10 @@ public class BrokerController {
         // 主题
         // 会添加默认Topic
         this.topicConfigManager = new TopicConfigManager(this);
+
+        // 消息拉取处理类
         this.pullMessageProcessor = new PullMessageProcessor(this);
+        // 消息拉取长轮询
         this.pullRequestHoldService = new PullRequestHoldService(this);
 
         // DefaultMessageStore的入参之一
