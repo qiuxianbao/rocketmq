@@ -16,9 +16,6 @@
  */
 package org.apache.rocketmq.client.impl.consumer;
 
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import org.apache.rocketmq.client.consumer.AllocateMessageQueueStrategy;
 import org.apache.rocketmq.client.consumer.store.OffsetStore;
 import org.apache.rocketmq.client.consumer.store.ReadOffsetType;
@@ -31,6 +28,10 @@ import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.heartbeat.ConsumeType;
 import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.apache.rocketmq.common.protocol.heartbeat.SubscriptionData;
+
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 重负载
@@ -87,8 +88,11 @@ public class RebalancePushImpl extends RebalanceImpl {
 
     @Override
     public boolean removeUnnecessaryMessageQueue(MessageQueue mq, ProcessQueue pq) {
+        // 持久化消费进度
         this.defaultMQPushConsumerImpl.getOffsetStore().persist(mq);
         this.defaultMQPushConsumerImpl.getOffsetStore().removeOffset(mq);
+
+        // 集群模式 & 顺序消息
         if (this.defaultMQPushConsumerImpl.isConsumeOrderly()
             && MessageModel.CLUSTERING.equals(this.defaultMQPushConsumerImpl.messageModel())) {
             try {
@@ -141,6 +145,19 @@ public class RebalancePushImpl extends RebalanceImpl {
         this.defaultMQPushConsumerImpl.getOffsetStore().removeOffset(mq);
     }
 
+
+    /**
+     * 计算消费队列的消费进度
+     *
+     * 这里采用了 消费进度校正策略（只有在从磁盘中获取消费进度返回-1时才生效）
+     *
+     * 说明：当消息进度存储文件中返回的消费进度小于-1，表示偏移量非法，则使用偏移量-1去拉取消息
+     * 首先第一次去消息服务器拉取消息时无法取到，但是会用-1去更新消费进度
+     * 然后将消息消费队列丢弃，在下一次消息队列负载时会再次消费
+     *
+     * @param mq
+     * @return
+     */
     @Override
     public long computePullFromWhere(MessageQueue mq) {
         long result = -1;
@@ -148,7 +165,7 @@ public class RebalancePushImpl extends RebalanceImpl {
         // offset 存储器，消费组消息偏移量存储实现器
         final OffsetStore offsetStore = this.defaultMQPushConsumerImpl.getOffsetStore();
         switch (consumeFromWhere) {
-            // 从队列的最大偏移量开始消费
+            // 从队列的最大（最新）偏移量开始消费
             case CONSUME_FROM_LAST_OFFSET_AND_FROM_MIN_WHEN_BOOT_FIRST:
             case CONSUME_FROM_MIN_OFFSET:
             case CONSUME_FROM_MAX_OFFSET:
@@ -160,6 +177,7 @@ public class RebalancePushImpl extends RebalanceImpl {
                     result = lastOffset;
                 }
                 // First start,no offset
+                // 说明该消息队列刚创建
                 else if (-1 == lastOffset) {
                     // 重试队列
                     if (mq.getTopic().startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) {
@@ -175,26 +193,33 @@ public class RebalancePushImpl extends RebalanceImpl {
                         }
                     }
                 } else {
+                    // 消息进度文件中存储了错误的偏移量
                     result = -1;
                 }
                 break;
             }
+
+            // 从消费队列最小（从头）偏移量开始消费
             case CONSUME_FROM_FIRST_OFFSET: {
                 long lastOffset = offsetStore.readOffset(mq, ReadOffsetType.READ_FROM_STORE);
                 if (lastOffset >= 0) {
                     result = lastOffset;
                 } else if (-1 == lastOffset) {
+                    // 从头开始
                     result = 0L;
                 } else {
                     result = -1;
                 }
                 break;
             }
+
+            // 从指定的时间戳开始消费
             case CONSUME_FROM_TIMESTAMP: {
                 long lastOffset = offsetStore.readOffset(mq, ReadOffsetType.READ_FROM_STORE);
                 if (lastOffset >= 0) {
                     result = lastOffset;
                 } else if (-1 == lastOffset) {
+                    // 重试
                     if (mq.getTopic().startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX)) {
                         try {
                             result = this.mQClientFactory.getMQAdminImpl().maxOffset(mq);
@@ -202,7 +227,9 @@ public class RebalancePushImpl extends RebalanceImpl {
                             result = -1;
                         }
                     } else {
+                        // 普通
                         try {
+                            // 消费者启动的时间戳
                             long timestamp = UtilAll.parseDate(this.defaultMQPushConsumerImpl.getDefaultMQPushConsumer().getConsumeTimestamp(),
                                 UtilAll.YYYYMMDDHHMMSS).getTime();
                             result = this.mQClientFactory.getMQAdminImpl().searchOffset(mq, timestamp);

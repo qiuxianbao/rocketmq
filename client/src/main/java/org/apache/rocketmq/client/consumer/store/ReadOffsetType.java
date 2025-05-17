@@ -16,6 +16,9 @@
  */
 package org.apache.rocketmq.client.consumer.store;
 
+/**
+ * 从哪里读取消费进度
+ */
 public enum ReadOffsetType {
     /**
      * From memory

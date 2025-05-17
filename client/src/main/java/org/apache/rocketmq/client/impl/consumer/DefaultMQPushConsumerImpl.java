@@ -115,6 +115,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
 
     /**
      * 初始化 RebalanceImpl
+     * 每1个consumer持有一个RebalanceImpl
      */
     private final RebalanceImpl rebalanceImpl = new RebalancePushImpl(this);
     private final ArrayList<FilterMessageHook> filterMessageHookList = new ArrayList<FilterMessageHook>();
@@ -255,6 +256,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
 
     /**
      * 消息拉取
+     * @see PullMessageService#pullMessage(PullRequest)
      * @param pullRequest
      */
     public void pullMessage(final PullRequest pullRequest) {
@@ -402,7 +404,11 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                                 // 将拉取到的消息，按消息的队列偏移量顺序存入 ProcessQueue
                                 boolean dispatchToConsume = processQueue.putMessage(pullResult.getMsgFoundList());
 
-                                // 提交给消费者消费，异步处理
+                                // TODO-QIU: 2025年5月17日, 0017
+                                /**
+                                 * 消息消费
+                                 * 提交给消费者消费，异步处理
+                                 */
                                 DefaultMQPushConsumerImpl.this.consumeMessageService.submitConsumeRequest(
                                     pullResult.getMsgFoundList(),
                                     processQueue,
@@ -1188,7 +1194,6 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
     @Override
     public void doRebalance() {
         if (!this.pause) {
-            // TODO-QIU: 2025年3月6日, 0006
             this.rebalanceImpl.doRebalance(this.isConsumeOrderly());
         }
     }

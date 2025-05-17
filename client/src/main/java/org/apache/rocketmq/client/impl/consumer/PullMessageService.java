@@ -85,8 +85,8 @@ public class PullMessageService extends ServiceThread {
      * 立即添加
      *
      * put时机
-     * {@link DefaultMQPushConsumerImpl#pullMessage(PullRequest)}
-     * {@link RebalancePushImpl#dispatchPullRequest(List)}
+     * 从pullRequestQueue.take()中获取到执行 {@link DefaultMQPushConsumerImpl#pullMessage(PullRequest)}
+     * 首次触发 {@link RebalancePushImpl#dispatchPullRequest(List)}
      * @param pullRequest
      */
     public void executePullRequestImmediately(final PullRequest pullRequest) {

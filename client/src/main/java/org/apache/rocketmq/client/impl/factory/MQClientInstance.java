@@ -167,6 +167,8 @@ public class MQClientInstance {
 
         /**
          * 初始化
+         * 消息队列负载与重新分配线程
+         * 触发拉取消息
          */
         this.rebalanceService = new RebalanceService(this);
 
@@ -299,8 +301,11 @@ public class MQClientInstance {
                      */
                     this.pullMessageService.start();
 
-                    // 重负载
-                    // Start rebalance service
+                    /**
+                     * 消息队列负载与重新分配（入口）
+                     * 触发拉取消息
+                     * {@link RebalanceService#run()}
+                     */
                     this.rebalanceService.start();
 
                     // TODO-QIU: 2025年4月15日, 0015
@@ -423,8 +428,8 @@ public class MQClientInstance {
                     topicList.addAll(lst);
                 }
             }
-        }
 
+        }
         for (String topic : topicList) {
             this.updateTopicRouteInfoFromNameServer(topic);
         }
@@ -748,6 +753,9 @@ public class MQClientInstance {
                                 }
                             }
 
+                            /**
+                             * 更新订阅信息
+                             */
                             // Update sub info
                             {
                                 Set<MessageQueue> subscribeInfo = topicRouteData2TopicSubscribeInfo(topic, topicRouteData);
@@ -756,6 +764,7 @@ public class MQClientInstance {
                                     Entry<String, MQConsumerInner> entry = it.next();
                                     MQConsumerInner impl = entry.getValue();
                                     if (impl != null) {
+                                        // Topic 与 消息队列 映射关系
                                         impl.updateTopicSubscribeInfo(topic, subscribeInfo);
                                     }
                                 }
@@ -1077,11 +1086,16 @@ public class MQClientInstance {
         this.rebalanceService.wakeup();
     }
 
+    /**
+     * 执行消息队列负载
+     */
     public void doRebalance() {
+        // 遍历所有的消费者
         for (Map.Entry<String, MQConsumerInner> entry : this.consumerTable.entrySet()) {
             MQConsumerInner impl = entry.getValue();
             if (impl != null) {
                 try {
+                    // 执行
                     impl.doRebalance();
                 } catch (Throwable e) {
                     log.error("doRebalance exception", e);
