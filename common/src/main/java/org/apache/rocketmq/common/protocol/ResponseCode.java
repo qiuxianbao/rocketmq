@@ -72,6 +72,9 @@ public class ResponseCode extends RemotingSysResponseCode {
 
     public static final int SUBSCRIPTION_NOT_LATEST = 25;
 
+    /**
+     * 消费组不存在
+     */
     public static final int SUBSCRIPTION_GROUP_NOT_EXIST = 26;
 
     public static final int FILTER_DATA_NOT_EXIST = 27;

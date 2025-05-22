@@ -17,19 +17,23 @@
 package org.apache.rocketmq.client.consumer.store;
 
 /**
- * 从哪里读取消费进度
+ * 消费进度读取方式
  */
 public enum ReadOffsetType {
+
     /**
      * From memory
+     * 内存
      */
     READ_FROM_MEMORY,
     /**
      * From storage
+     * 磁盘
      */
     READ_FROM_STORE,
     /**
      * From memory,then from storage
+     * 先从内存中读取，再从磁盘中
      */
     MEMORY_FIRST_THEN_STORE;
 }

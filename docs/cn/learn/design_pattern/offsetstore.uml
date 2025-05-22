@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Diagram>
+  <ID>JAVA</ID>
+  <OriginalElement>org.apache.rocketmq.client.consumer.store.OffsetStore</OriginalElement>
+  <nodes>
+    <node x="-89.5" y="-14.0">org.apache.rocketmq.client.consumer.store.OffsetStore</node>
+    <node x="-123.5" y="166.0">org.apache.rocketmq.client.consumer.store.LocalFileOffsetStore</node>
+    <node x="-4.0" y="106.0">org.apache.rocketmq.client.consumer.store.RemoteBrokerOffsetStore</node>
+  </nodes>
+  <notes />
+  <edges>
+    <edge source="org.apache.rocketmq.client.consumer.store.LocalFileOffsetStore" target="org.apache.rocketmq.client.consumer.store.OffsetStore" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.client.consumer.store.RemoteBrokerOffsetStore" target="org.apache.rocketmq.client.consumer.store.OffsetStore" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="120.0" y="80.0" />
+      <point x="-20.0" y="80.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.5" showDependencies="false" x="107.83333333333337" y="141.6666666666667" />
+  <SelectedNodes>
+    <node>org.apache.rocketmq.client.consumer.store.OffsetStore</node>
+  </SelectedNodes>
+  <Categories />
+  <SCOPE>All</SCOPE>
+  <VISIBILITY>private</VISIBILITY>
+</Diagram>
+

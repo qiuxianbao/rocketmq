@@ -35,6 +35,7 @@ import org.apache.rocketmq.client.ClientConfig;
 import org.apache.rocketmq.client.consumer.PullCallback;
 import org.apache.rocketmq.client.consumer.PullResult;
 import org.apache.rocketmq.client.consumer.PullStatus;
+import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.hook.SendMessageContext;
@@ -1050,6 +1051,7 @@ public class MQClientAPIImpl {
         final QueryConsumerOffsetRequestHeader requestHeader,
         final long timeoutMillis
     ) throws RemotingException, MQBrokerException, InterruptedException {
+        // 发送网络请求
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.QUERY_CONSUMER_OFFSET, requestHeader);
 
         RemotingCommand response = this.remotingClient.invokeSync(MixAll.brokerVIPChannel(this.clientConfig.isVipChannelEnabled(), addr),
@@ -1182,6 +1184,19 @@ public class MQClientAPIImpl {
         return response.getCode() == ResponseCode.SUCCESS;
     }
 
+    /**
+     * 消息确认 ACK
+     *
+     * @param addr
+     * @param msg
+     * @param consumerGroup
+     * @param delayLevel    {@link ConsumeConcurrentlyContext#delayLevelWhenNextConsume}
+     * @param timeoutMillis 5000
+     * @param maxConsumeRetryTimes
+     * @throws RemotingException
+     * @throws MQBrokerException
+     * @throws InterruptedException
+     */
     public void consumerSendMessageBack(
         final String addr,
         final MessageExt msg,
@@ -1200,6 +1215,7 @@ public class MQClientAPIImpl {
         requestHeader.setOriginMsgId(msg.getMsgId());
         requestHeader.setMaxReconsumeTimes(maxConsumeRetryTimes);
 
+        // 同步的方式发送，阻塞等待5s
         RemotingCommand response = this.remotingClient.invokeSync(MixAll.brokerVIPChannel(this.clientConfig.isVipChannelEnabled(), addr),
             request, timeoutMillis);
         assert response != null;

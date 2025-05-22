@@ -38,9 +38,8 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 
 /**
  * Remote storage implementation
+ * 集群模式下的offset存储
  */
-// TODO-QIU: 2024年4月17日, 0017
-// 集群模式下的offset存储
 public class RemoteBrokerOffsetStore implements OffsetStore {
     private final static InternalLogger log = ClientLogger.getLog();
     private final MQClientInstance mQClientFactory;
@@ -89,7 +88,7 @@ public class RemoteBrokerOffsetStore implements OffsetStore {
                         return -1;
                     }
                 }
-                // store中读取
+                // 磁盘
                 case READ_FROM_STORE: {
                     try {
                         long brokerOffset = this.fetchConsumeOffsetFromBroker(mq);
@@ -199,9 +198,10 @@ public class RemoteBrokerOffsetStore implements OffsetStore {
 
     /**
      * Update the Consumer Offset synchronously, once the Master is off, updated to Slave, here need to be optimized.
+     *
+     * 客户端定时向 Broker端发送更新消息消费进度的请求
+     * @see MQClientInstance#startScheduledTask()
      */
-    // 客户端定时向 Broker端发送更新消息消费进度的请求
-    // TODO-QIU: 2024年3月29日, 0029
     @Override
     public void updateConsumeOffsetToBroker(MessageQueue mq, long offset, boolean isOneway) throws RemotingException,
         MQBrokerException, InterruptedException, MQClientException {

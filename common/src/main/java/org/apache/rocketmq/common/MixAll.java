@@ -213,6 +213,7 @@ public class MixAll {
 
     public static String file2String(final File file) throws IOException {
         if (file.exists()) {
+            // 技巧：读取文件内容
             byte[] data = new byte[(int) file.length()];
             boolean result;
 

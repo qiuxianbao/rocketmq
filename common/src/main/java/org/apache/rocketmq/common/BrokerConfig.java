@@ -107,6 +107,7 @@ public class BrokerConfig {
     /**
      * 是否自动创建消费组/订阅组
      * 默认为为true
+     * 表示第一次使用消费组配置信息时，如果不存在，则使用上述默认配置自动创建一个
      */
     @ImportantField
     private boolean autoCreateSubscriptionGroup = true;

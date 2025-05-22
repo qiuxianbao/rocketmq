@@ -18,6 +18,8 @@
 package org.apache.rocketmq.common.protocol;
 
 import io.netty.channel.ChannelHandlerContext;
+import org.apache.rocketmq.common.message.MessageExt;
+import org.apache.rocketmq.common.protocol.header.UpdateConsumerOffsetRequestHeader;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
 
 /**
@@ -47,10 +49,19 @@ public class RequestCode {
     // 查询Broker偏移量
     public static final int QUERY_BROKER_OFFSET = 13;
 
-    // 查询消费者偏移
+    // 查询消费进度
     public static final int QUERY_CONSUMER_OFFSET = 14;
 
-    // 更新消费者偏移量
+    /**
+     * 持久化消费进度
+     *
+     * 服务端
+     * @see org.apache.rocketmq.broker.processor.ConsumerManageProcessor#processRequest(ChannelHandlerContext, RemotingCommand)
+     *
+     * 客户端
+     * @see org.apache.rocketmq.client.impl.MQClientAPIImpl#updateConsumerOffset(String, UpdateConsumerOffsetRequestHeader, long)
+     *
+     */
     public static final int UPDATE_CONSUMER_OFFSET = 15;
 
 
@@ -119,7 +130,15 @@ public class RequestCode {
     // 注销客户端
     public static final int UNREGISTER_CLIENT = 35;
 
-    // TODO-QIU: 2024年7月25日, 0025
+    /**
+     * 消息消费，消息确认
+     *
+     * 客户端
+     * @see org.apache.rocketmq.client.impl.MQClientAPIImpl#consumerSendMessageBack(String, MessageExt, String, int, long, int)
+     *
+     * 服务端
+     * @see org.apache.rocketmq.broker.processor.SendMessageProcessor#asyncProcessRequest(ChannelHandlerContext, RemotingCommand)
+     */
     public static final int CONSUMER_SEND_MSG_BACK = 36;
 
     /**

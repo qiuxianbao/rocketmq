@@ -45,7 +45,7 @@ public interface MQPushConsumer extends MQConsumer {
     void registerMessageListener(MessageListener messageListener);
 
     /**
-     * 注册并发消息事件监听器
+     * 注册并发消息事件监听器（使用的时候需要设置）
      * @param messageListener
      */
     void registerMessageListener(final MessageListenerConcurrently messageListener);

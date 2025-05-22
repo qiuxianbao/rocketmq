@@ -368,6 +368,9 @@ public class MQClientInstance {
             }
         }, 1000, this.clientConfig.getHeartbeatBrokerInterval(), TimeUnit.MILLISECONDS);
 
+        /**
+         * 每间隔5s，持久化一次消费进度
+         */
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -556,6 +559,7 @@ public class MQClientInstance {
     }
 
     private void persistAllConsumerOffset() {
+        // 获取消费者实例
         Iterator<Entry<String, MQConsumerInner>> it = this.consumerTable.entrySet().iterator();
         while (it.hasNext()) {
             Entry<String, MQConsumerInner> entry = it.next();

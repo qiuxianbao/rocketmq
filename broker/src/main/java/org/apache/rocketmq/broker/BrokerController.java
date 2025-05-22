@@ -357,6 +357,12 @@ public class BrokerController {
                 }
             }, initialDelay, period, TimeUnit.MILLISECONDS);
 
+            /**
+             * 持久化消费进度
+             * 每间5s持久化一次
+             *
+             * 技巧：先更新到内存，然后通过定时任务的方式进行持久化操作
+             */
             this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
                 @Override
                 public void run() {

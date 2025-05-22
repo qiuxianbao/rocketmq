@@ -699,13 +699,17 @@ public class CommitLog {
         final int tranType = MessageSysFlag.getTransactionValue(msg.getSysFlag());
         if (tranType == MessageSysFlag.TRANSACTION_NOT_TYPE
                 || tranType == MessageSysFlag.TRANSACTION_COMMIT_TYPE) {
-            // Delay Delivery
+            /**
+             * Delay Delivery，延迟消息
+             */
             if (msg.getDelayTimeLevel() > 0) {
                 if (msg.getDelayTimeLevel() > this.defaultMessageStore.getScheduleMessageService().getMaxDelayLevel()) {
                     msg.setDelayTimeLevel(this.defaultMessageStore.getScheduleMessageService().getMaxDelayLevel());
                 }
 
+                // 替换消息的主题为定时任务主题 SCHEDULE_TOPIC_XXXX
                 topic = ScheduleMessageService.SCHEDULE_TOPIC;
+                // 队列ID为延迟级别减1
                 queueId = ScheduleMessageService.delayLevel2QueueId(msg.getDelayTimeLevel());
 
                 // Backup real topic, queueId
@@ -740,6 +744,7 @@ public class CommitLog {
                 return CompletableFuture.completedFuture(new PutMessageResult(PutMessageStatus.CREATE_MAPEDFILE_FAILED, null));
             }
 
+            // 追加消息
             result = mappedFile.appendMessage(msg, this.appendMessageCallback);
             switch (result.getStatus()) {
                 case PUT_OK:
@@ -1587,7 +1592,7 @@ public class CommitLog {
                     if (storeTimestamp > 0) {
                         /**
                          * 更新存储检测点文件的commitlog文件的更新时间戳
-                         * 文件检测点文件的刷盘动作在输盘消息消费队列线程中执行
+                         * 文件检测点文件的刷盘动作在刷盘消息消费队列线程中执行
                          * @see
                          */
                         CommitLog.this.defaultMessageStore.getStoreCheckpoint().setPhysicMsgTimestamp(storeTimestamp);

@@ -17,6 +17,7 @@
 package org.apache.rocketmq.broker.processor;
 
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -52,6 +53,7 @@ import org.apache.rocketmq.remoting.exception.RemotingCommandException;
 import org.apache.rocketmq.remoting.netty.NettyRequestProcessor;
 import org.apache.rocketmq.remoting.netty.RemotingResponseCallback;
 import org.apache.rocketmq.remoting.protocol.RemotingCommand;
+import org.apache.rocketmq.store.CommitLog;
 import org.apache.rocketmq.store.MessageExtBrokerInner;
 import org.apache.rocketmq.store.PutMessageResult;
 import org.apache.rocketmq.store.config.StorePathConfigHelper;
@@ -103,6 +105,9 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
                                                                   RemotingCommand request) throws RemotingCommandException {
         final SendMessageContext mqtraceContext;
         switch (request.getCode()) {
+            /**
+             * 消息消费，消息确认 ACK
+             */
             case RequestCode.CONSUMER_SEND_MSG_BACK:
                 return this.asyncConsumerSendMsgBack(ctx, request);
             default:
@@ -133,6 +138,13 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             this.brokerController.getMessageStore().isTransientStorePoolDeficient();
     }
 
+    /**
+     * 消息消费，消息确认 ACK（服务端）
+     * @param ctx
+     * @param request
+     * @return
+     * @throws RemotingCommandException
+     */
     private CompletableFuture<RemotingCommand> asyncConsumerSendMsgBack(ChannelHandlerContext ctx,
                                                                         RemotingCommand request) throws RemotingCommandException {
         final RemotingCommand response = RemotingCommand.createResponseCommand(null);
@@ -143,6 +155,8 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             ConsumeMessageContext context = buildConsumeMessageContext(namespace, requestHeader, request);
             this.executeConsumeMessageHookAfter(context);
         }
+
+        // 1.获取消费组的订阅配置信息
         SubscriptionGroupConfig subscriptionGroupConfig =
             this.brokerController.getSubscriptionGroupManager().findSubscriptionGroupConfig(requestHeader.getGroup());
         if (null == subscriptionGroupConfig) {
@@ -157,12 +171,18 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             return CompletableFuture.completedFuture(response);
         }
 
+        // 如果重试队列数量小于1，直接返回成功
+        // 说明消费组不支持重试
         if (subscriptionGroupConfig.getRetryQueueNums() <= 0) {
             response.setCode(ResponseCode.SUCCESS);
             response.setRemark(null);
             return CompletableFuture.completedFuture(response);
         }
 
+        /**
+         * 2.创建重试主题
+         * 重试主题名称为 %RETRY% + 消费组名称，并从重试队列中随机选择一个队列，并构建 TopicConfig 主题配置信息
+         */
         String newTopic = MixAll.getRetryTopic(requestHeader.getGroup());
         int queueIdInt = Math.abs(this.random.nextInt() % 99999999) % subscriptionGroupConfig.getRetryQueueNums();
         int topicSysFlag = 0;
@@ -185,6 +205,8 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             response.setRemark(String.format("the topic[%s] sending message is forbidden", newTopic));
             return CompletableFuture.completedFuture(response);
         }
+
+        // 3.根据消息物理偏移量从commitlog文件中获取消息
         MessageExt msgExt = this.brokerController.getMessageStore().lookMessageByOffset(requestHeader.getOffset());
         if (null == msgExt) {
             response.setCode(ResponseCode.SYSTEM_ERROR);
@@ -194,6 +216,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
 
         final String retryTopic = msgExt.getProperty(MessageConst.PROPERTY_RETRY_TOPIC);
         if (null == retryTopic) {
+            // 将消息的主题存入属性中
             MessageAccessor.putProperty(msgExt, MessageConst.PROPERTY_RETRY_TOPIC, msgExt.getTopic());
         }
         msgExt.setWaitStoreMsgOK(false);
@@ -205,13 +228,19 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             maxReconsumeTimes = requestHeader.getMaxReconsumeTimes();
         }
 
+        // 4.超过重试次数
         if (msgExt.getReconsumeTimes() >= maxReconsumeTimes 
             || delayLevel < 0) {
+            // 再次改变newTopic主题为 %DLQ%，创建死信队列
             newTopic = MixAll.getDLQTopic(requestHeader.getGroup());
             queueIdInt = Math.abs(this.random.nextInt() % 99999999) % DLQ_NUMS_PER_GROUP;
 
             topicConfig = this.brokerController.getTopicConfigManager().createTopicInSendMessageBackMethod(newTopic,
                     DLQ_NUMS_PER_GROUP,
+                    /**
+                     * 权限为只写
+                     * 说明消息一旦进入到DLQ队列中，RocketMQ将不再负责再次调度进行消费了，需要人工干预
+                     */
                     PermName.PERM_WRITE, 0);
             if (null == topicConfig) {
                 response.setCode(ResponseCode.SYSTEM_ERROR);
@@ -225,7 +254,13 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
             msgExt.setDelayTimeLevel(delayLevel);
         }
 
+        /**
+         * 5.根据原有消息，构建一个新的消息对象
+         * 重试消息会拥有自己的唯一消息ID msgId {@link CommitLog.DefaultAppendMessageCallback#doAppend(long, ByteBuffer, int, MessageExtBrokerInner)} 并存入到commitlog中
+         * 并不会更新原先的消息
+         */
         MessageExtBrokerInner msgInner = new MessageExtBrokerInner();
+        //
         msgInner.setTopic(newTopic);
         msgInner.setBody(msgExt.getBody());
         msgInner.setFlag(msgExt.getFlag());
@@ -233,6 +268,7 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
         msgInner.setPropertiesString(MessageDecoder.messageProperties2String(msgExt.getProperties()));
         msgInner.setTagsCode(MessageExtBrokerInner.tagsString2tagsCode(null, msgExt.getTags()));
 
+        //
         msgInner.setQueueId(queueIdInt);
         msgInner.setSysFlag(msgExt.getSysFlag());
         msgInner.setBornTimestamp(msgExt.getBornTimestamp());
@@ -242,6 +278,8 @@ public class SendMessageProcessor extends AbstractSendMessageProcessor implement
 
         String originMsgId = MessageAccessor.getOriginMessageId(msgExt);
         MessageAccessor.setOriginMessageId(msgInner, UtilAll.isBlank(originMsgId) ? msgExt.getMsgId() : originMsgId);
+        // 6.将消息存储到commitlog文件中
+        // 消息重试机制依托于定时任务实现
         CompletableFuture<PutMessageResult> putMessageResult = this.brokerController.getMessageStore().asyncPutMessage(msgInner);
         return putMessageResult.thenApply((r) -> {
             if (r != null) {

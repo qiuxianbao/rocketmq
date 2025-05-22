@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.client.impl.consumer.DefaultMQPushConsumerImpl;
 import org.apache.rocketmq.client.impl.factory.MQClientInstance;
 import org.apache.rocketmq.client.log.ClientLogger;
 import org.apache.rocketmq.common.MixAll;
@@ -37,16 +38,39 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 
 /**
  * Local storage implementation
+ * 广播模式下的offset存储，存储在消费者本地
  */
 public class LocalFileOffsetStore implements OffsetStore {
+
+    /**
+     * 消费进度存储目录
+     */
     public final static String LOCAL_OFFSET_STORE_DIR = System.getProperty(
         "rocketmq.client.localOffsetStoreDir",
+        // 默认值
         System.getProperty("user.home") + File.separator + ".rocketmq_offsets");
     private final static InternalLogger log = ClientLogger.getLog();
+
+    /**
+     * 消费客户端
+     */
     private final MQClientInstance mQClientFactory;
+
+    /**
+     * 消息消费组
+     */
     private final String groupName;
+
+    /**
+     * 消费进度存储文件
+     * 默认值：${user.home}/.rocketmq_offsets/${clientId}/${groupName}/offsets.json
+     */
     private final String storePath;
-    private ConcurrentMap<MessageQueue, AtomicLong> offsetTable =
+
+    /**
+     * 消息消费进度（内存）
+     */
+    private ConcurrentMap<MessageQueue, AtomicLong/*offset*/> offsetTable =
         new ConcurrentHashMap<MessageQueue, AtomicLong>();
 
     public LocalFileOffsetStore(MQClientInstance mQClientFactory, String groupName) {
@@ -128,6 +152,13 @@ public class LocalFileOffsetStore implements OffsetStore {
         return -1;
     }
 
+
+    /**
+     * 持久化指定消息队列消息进度到磁盘
+     * @see DefaultMQPushConsumerImpl#persistConsumerOffset()
+     *
+     * @param mqs
+     */
     @Override
     public void persistAll(Set<MessageQueue> mqs) {
         if (null == mqs || mqs.isEmpty())
@@ -180,6 +211,11 @@ public class LocalFileOffsetStore implements OffsetStore {
         return cloneOffsetTable;
     }
 
+    /**
+     * 先从 storePath 读取，没有则从 storePath.bak 读取
+     * @return
+     * @throws MQClientException
+     */
     private OffsetSerializeWrapper readLocalOffset() throws MQClientException {
         String content = null;
         try {
@@ -188,6 +224,7 @@ public class LocalFileOffsetStore implements OffsetStore {
             log.warn("Load local offset store file exception", e);
         }
         if (null == content || content.length() == 0) {
+            // this.storePath + .bak
             return this.readLocalOffsetBak();
         } else {
             OffsetSerializeWrapper offsetSerializeWrapper = null;

@@ -412,7 +412,10 @@ public abstract class RebalanceImpl {
                 // 如果当前负载队列不在【新分配】的负载队列集合中
                 // 说明这个mq分配给其他消费者了
                 if (!mqSet.contains(mq)) {
-                    // 停止消费
+                    /**
+                     * 停止消费
+                     * 处理逻辑  {@link ConsumeMessageConcurrentlyService.ConsumeRequest#run()}
+                     */
                     pq.setDropped(true);
                     // 保存消费进度
                     if (this.removeUnnecessaryMessageQueue(mq, pq)) {

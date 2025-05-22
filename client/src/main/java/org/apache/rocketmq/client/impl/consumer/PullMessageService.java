@@ -125,7 +125,7 @@ public class PullMessageService extends ServiceThread {
 
 
     /**
-     * 消息拉取调用入口
+     * 消息拉调（入口）
      * {@link MQClientInstance#start()}
      */
     @Override

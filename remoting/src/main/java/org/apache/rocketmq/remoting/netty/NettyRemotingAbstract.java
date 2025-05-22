@@ -303,6 +303,7 @@ public abstract class NettyRemotingAbstract {
      */
     public void processResponseCommand(ChannelHandlerContext ctx, RemotingCommand cmd) {
         final int opaque = cmd.getOpaque();
+        // 技巧：设计上，通过异步回调来实现同步阻塞
         final ResponseFuture responseFuture = responseTable.get(opaque);
         if (responseFuture != null) {
             responseFuture.setResponseCommand(cmd);
@@ -477,6 +478,7 @@ public abstract class NettyRemotingAbstract {
                 }
             });
 
+            // 技巧：通过阻塞等待，将异步变为同步
             RemotingCommand responseCommand = responseFuture.waitResponse(timeoutMillis);
             if (null == responseCommand) {
                 if (responseFuture.isSendRequestOK()) {

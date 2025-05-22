@@ -16,14 +16,6 @@
  */
 package org.apache.rocketmq.broker.offset;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import org.apache.rocketmq.broker.BrokerController;
 import org.apache.rocketmq.broker.BrokerPathConfigHelper;
 import org.apache.rocketmq.common.ConfigManager;
@@ -33,12 +25,34 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.remoting.protocol.RemotingSerializable;
 
-// TODO-QIU: 2024年3月29日, 0029
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+/**
+ * 集群模式
+ * 消费进度管理
+ *
+ * 存储文件名：${RocketMQ_HOME}/store/config/consumerOffset.json
+ *
+ * {
+ *    "offsetTable":{
+ *       "TopicTest@DataSyncConnsumeGroup":{0:38,2:37,1:37,3:38
+ *       },
+ *       "%RETRY%DataSyncConnsumeGroup@DataSyncConnsumeGroup":{0:0
+ *       }
+ *   }
+ * }
+ *
+ * 定时任务，每5s将内存数据持久化到硬盘
+ * @see BrokerController#initialize()
+ */
 public class ConsumerOffsetManager extends ConfigManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final String TOPIC_GROUP_SEPARATOR = "@";
 
-    private ConcurrentMap<String/* topic@group */, ConcurrentMap<Integer, Long>> offsetTable =
+    private ConcurrentMap<String/* topic@group */, ConcurrentMap<Integer/*queueId*/, Long/*offset*/>> offsetTable =
         new ConcurrentHashMap<String, ConcurrentMap<Integer, Long>>(512);
 
     private transient BrokerController brokerController;
@@ -184,6 +198,15 @@ public class ConsumerOffsetManager extends ConfigManager {
         }
     }
 
+    /**
+     * 格式化内容，
+     * 进行持久化
+     *
+     * {@link ConfigManager#persist()}
+     * @param prettyFormat
+     * @return
+     */
+    @Override
     public String encode(final boolean prettyFormat) {
         return RemotingSerializable.toJson(this, prettyFormat);
     }

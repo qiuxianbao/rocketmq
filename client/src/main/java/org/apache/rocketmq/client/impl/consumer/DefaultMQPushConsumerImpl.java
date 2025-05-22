@@ -387,7 +387,6 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
 
                             long firstMsgOffset = Long.MAX_VALUE;
 
-                            // TODO-QIU: 2025年4月16日, 0016
                             /**
                              * msgFoundList为空
                              * 说明：FOUND 是服务端返回的，在服务端是会验证Tag的hashcode
@@ -404,10 +403,9 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
                                 // 将拉取到的消息，按消息的队列偏移量顺序存入 ProcessQueue
                                 boolean dispatchToConsume = processQueue.putMessage(pullResult.getMsgFoundList());
 
-                                // TODO-QIU: 2025年5月17日, 0017
                                 /**
-                                 * 消息消费
-                                 * 提交给消费者消费，异步处理
+                                 * 消息消费-1.提交消费请求
+                                 * 提交给消费者消费，异步线程池处理，将消息拉取和消息消费解耦
                                  */
                                 DefaultMQPushConsumerImpl.this.consumeMessageService.submitConsumeRequest(
                                     pullResult.getMsgFoundList(),
@@ -623,6 +621,18 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
         log.info("resume this consumer, {}", this.defaultMQPushConsumer.getConsumerGroup());
     }
 
+    /**
+     * 同步
+     * 向broker发送消息确认ack
+     *
+     * @param msg
+     * @param delayLevel
+     * @param brokerName
+     * @throws RemotingException
+     * @throws MQBrokerException
+     * @throws InterruptedException
+     * @throws MQClientException
+     */
     public void sendMessageBack(MessageExt msg, int delayLevel, final String brokerName)
         throws RemotingException, MQBrokerException, InterruptedException, MQClientException {
         try {
@@ -646,6 +656,7 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
             MessageAccessor.clearProperty(newMsg, MessageConst.PROPERTY_TRANSACTION_PREPARED);
             newMsg.setDelayTimeLevel(3 + msg.getReconsumeTimes());
 
+            // 同步发送
             this.mQClientFactory.getDefaultMQProducer().send(newMsg);
         } finally {
             msg.setTopic(NamespaceUtil.withoutNamespace(msg.getTopic(), this.defaultMQPushConsumer.getNamespace()));
@@ -1202,6 +1213,8 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
     public void persistConsumerOffset() {
         try {
             this.makeSureStateOK();
+
+            // 获取分配的消息队列
             Set<MessageQueue> mqs = new HashSet<MessageQueue>();
             Set<MessageQueue> allocateMq = this.rebalanceImpl.getProcessQueueTable().keySet();
             mqs.addAll(allocateMq);
@@ -1334,6 +1347,17 @@ public class DefaultMQPushConsumerImpl implements MQConsumerInner {
         return queueTimeSpan;
     }
 
+
+    /**
+     * 恢复重试主题名
+     *
+     * 这是为什么呢？
+     * 这是由消息重试机制决定的，RocketMQ 将消息存人commitlog文件时，如果发现消息的延时级别delayTimeLevel大于0，会首先
+     * 将重试主题存入在消息的属性中，然后设置主题名称为SCHEDULE_TOPIC，以便时间到后重新参与消息消费。
+     *
+     * @param msgs
+     * @param consumerGroup
+     */
     public void resetRetryAndNamespace(final List<MessageExt> msgs, String consumerGroup) {
         final String groupTopic = MixAll.getRetryTopic(consumerGroup);
         for (MessageExt msg : msgs) {

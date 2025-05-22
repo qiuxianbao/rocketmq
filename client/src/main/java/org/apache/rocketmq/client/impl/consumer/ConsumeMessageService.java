@@ -17,10 +17,15 @@
 package org.apache.rocketmq.client.impl.consumer;
 
 import java.util.List;
+
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.common.message.MessageQueue;
 import org.apache.rocketmq.common.protocol.body.ConsumeMessageDirectlyResult;
 
+/**
+ * 消息消费处理
+ */
 public interface ConsumeMessageService {
     void start();
 
@@ -34,8 +39,25 @@ public interface ConsumeMessageService {
 
     int getCorePoolSize();
 
+    /**
+     * 直接消费消息
+     * 主要用于通过管理命令收到消费消息
+     *
+     * @param msg
+     * @param brokerName
+     * @return
+     */
     ConsumeMessageDirectlyResult consumeMessageDirectly(final MessageExt msg, final String brokerName);
 
+
+    /**
+     * 提交消费消费
+     *
+     * @param msgs  消息列表，默认一次从服务器最多拉取32条消息 {@link DefaultMQPushConsumer#pullBatchSize}
+     * @param processQueue 消息处理队列
+     * @param messageQueue 消息所属消费对列
+     * @param dispathToConsume  是否转发到消费线程池，并发消息时忽略该参数
+     */
     void submitConsumeRequest(
         final List<MessageExt> msgs,
         final ProcessQueue processQueue,

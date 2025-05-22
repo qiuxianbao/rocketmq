@@ -3,13 +3,26 @@
   <ID>JAVA</ID>
   <OriginalElement>org.apache.rocketmq.remoting.netty.NettyRequestProcessor</OriginalElement>
   <nodes>
+    <node x="26.0" y="106.0">org.apache.rocketmq.broker.processor.ConsumerManageProcessor</node>
     <node x="-116.0" y="-14.0">org.apache.rocketmq.remoting.netty.NettyRequestProcessor</node>
+    <node x="-118.0" y="166.0">org.apache.rocketmq.broker.processor.SendMessageProcessor</node>
   </nodes>
   <notes />
-  <edges />
-  <settings layout="Hierarchic Compact" zoom="1.0" showDependencies="false" x="49.0" y="19.0" />
+  <edges>
+    <edge source="org.apache.rocketmq.broker.processor.ConsumerManageProcessor" target="org.apache.rocketmq.remoting.netty.NettyRequestProcessor" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="160.0" y="80.0" />
+      <point x="0.0" y="80.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+    <edge source="org.apache.rocketmq.broker.processor.SendMessageProcessor" target="org.apache.rocketmq.remoting.netty.NettyRequestProcessor" relationship="REALIZATION">
+      <point x="0.0" y="-14.0" />
+      <point x="0.0" y="14.0" />
+    </edge>
+  </edges>
+  <settings layout="Hierarchic Compact" zoom="1.5" showDependencies="false" x="98.0" y="100.0" />
   <SelectedNodes>
-    <node>org.apache.rocketmq.remoting.netty.NettyRequestProcessor</node>
+    <node>org.apache.rocketmq.broker.processor.ConsumerManageProcessor</node>
   </SelectedNodes>
   <Categories />
   <SCOPE>All</SCOPE>

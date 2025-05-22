@@ -53,6 +53,10 @@ public class ConsumerManageProcessor extends AsyncNettyRequestProcessor implemen
         switch (request.getCode()) {
             case RequestCode.GET_CONSUMER_LIST_BY_GROUP:
                 return this.getConsumerListByGroup(ctx, request);
+
+            /**
+             * 更新消费进度
+             */
             case RequestCode.UPDATE_CONSUMER_OFFSET:
                 return this.updateConsumerOffset(ctx, request);
             case RequestCode.QUERY_CONSUMER_OFFSET:
